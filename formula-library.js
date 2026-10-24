@@ -40,6 +40,7 @@
     style.textContent=`
       .formula-toolbar{display:grid;grid-template-columns:minmax(180px,2fr) repeat(3,minmax(130px,1fr));gap:10px;margin:18px 0}
       .formula-category-nav{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 4px}.formula-category-nav button{border:1px solid var(--line);border-radius:20px;background:white;color:var(--maroon);padding:7px 11px;font-size:10px;font-weight:700}.formula-category-nav button.active,.formula-category-nav button:hover{background:var(--maroon);border-color:var(--maroon);color:white}
+      .lesson-diagram{margin:14px 0 20px;padding:14px;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:auto}.lesson-diagram svg{display:block;width:100%;height:auto;min-width:280px;max-height:260px}.lesson-diagram figcaption{font-size:10px;line-height:1.6;color:var(--muted);margin-top:10px}
       .formula-control{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink);padding:11px 12px;font-size:12px}
       .formula-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
       .formula-stat{background:white;border:1px solid var(--line);border-radius:12px;padding:14px}.formula-stat strong{display:block;font:800 22px Manrope;color:var(--maroon)}.formula-stat span{font-size:11px;color:var(--muted)}
@@ -56,7 +57,7 @@
       .formula-note{background:#fff4e8;border:1px solid #edd6c3;border-radius:10px;padding:13px;font-size:11px;line-height:1.7;color:#704a3b;margin-top:16px}
       @media(max-width:850px){.formula-toolbar{grid-template-columns:1fr 1fr}.formula-list{grid-template-columns:1fr}.formula-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
       @media(max-width:480px){.formula-toolbar{grid-template-columns:1fr}.formula-summary{grid-template-columns:1fr}.formula-inputs{grid-template-columns:1fr}}
-      @media print{body *{visibility:hidden!important}#page,#page *{visibility:visible!important}.formula-toolbar,.formula-actions,.formula-bookmark,.topbar,.sidebar,.academy-nav{display:none!important}#page{position:absolute;left:0;top:0;width:100%;max-width:none;padding:0}.formula-list{display:block}.formula-card{break-inside:avoid;margin-bottom:12px;box-shadow:none}.formula-detail{display:block}.formula-detail>summary{display:none!important}.formula-detail>*{display:block!important}}
+      @media print{body *{visibility:hidden!important}#page,#page *{visibility:visible!important}.formula-toolbar,.formula-category-nav,.formula-actions,.formula-bookmark,.topbar,.sidebar,.academy-nav{display:none!important}#page{position:absolute;left:0;top:0;width:100%;max-width:none;padding:0}.formula-list{display:block}.formula-card{break-inside:avoid;margin-bottom:12px;box-shadow:none}.formula-detail{display:block}.formula-detail>summary{display:none!important}.formula-detail>*{display:block!important}}
     `;
     document.head.appendChild(style);
   }
