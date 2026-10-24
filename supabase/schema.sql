@@ -1,54 +1,52 @@
 -- UT Masterclass Academy — Supabase schema
--- Run in Supabase Dashboard > SQL Editor.
--- This schema stores learner progress only; course lessons live in the static site.
+-- Matches the schema already present in the project's Supabase database.
+-- Safe to run again: it creates missing tables, then sets owned-row RLS policies.
+-- It does not drop tables or learner data.
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  full_name text,
+  display_name text not null default 'Learner',
+  learner_type text not null default 'Working Professional',
+  email text,
+  phone text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 create table if not exists public.course_progress (
-  user_id uuid not null references auth.users(id) on delete cascade,
-  class_id text not null check (class_id ~ '^class-[0-9]{2}$'),
-  completed boolean not null default false,
-  best_score integer check (best_score between 0 and 100),
-  last_score integer check (last_score between 0 and 100),
-  notes text not null default '',
-  updated_at timestamptz not null default now(),
-  primary key (user_id, class_id)
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  completed integer[] not null default '{}',
+  passed_quizzes integer[] not null default '{}',
+  quiz_scores jsonb not null default '{}'::jsonb,
+  certificate_record jsonb,
+  last_exam_result jsonb,
+  saved_at timestamptz not null default now()
 );
 
 alter table public.profiles enable row level security;
 alter table public.course_progress enable row level security;
 
-drop policy if exists "Learners can read own profile" on public.profiles;
-create policy "Learners can read own profile" on public.profiles
+drop policy if exists "Profiles select own" on public.profiles;
+create policy "Profiles select own" on public.profiles
   for select to authenticated using ((select auth.uid()) = id);
-drop policy if exists "Learners can insert own profile" on public.profiles;
-create policy "Learners can insert own profile" on public.profiles
+drop policy if exists "Profiles insert own" on public.profiles;
+create policy "Profiles insert own" on public.profiles
   for insert to authenticated with check ((select auth.uid()) = id);
-drop policy if exists "Learners can update own profile" on public.profiles;
-create policy "Learners can update own profile" on public.profiles
+drop policy if exists "Profiles update own" on public.profiles;
+create policy "Profiles update own" on public.profiles
   for update to authenticated using ((select auth.uid()) = id)
   with check ((select auth.uid()) = id);
 
-drop policy if exists "Learners can read own progress" on public.course_progress;
-create policy "Learners can read own progress" on public.course_progress
+drop policy if exists "Progress select own" on public.course_progress;
+create policy "Progress select own" on public.course_progress
   for select to authenticated using ((select auth.uid()) = user_id);
-drop policy if exists "Learners can insert own progress" on public.course_progress;
-create policy "Learners can insert own progress" on public.course_progress
+drop policy if exists "Progress insert own" on public.course_progress;
+create policy "Progress insert own" on public.course_progress
   for insert to authenticated with check ((select auth.uid()) = user_id);
-drop policy if exists "Learners can update own progress" on public.course_progress;
-create policy "Learners can update own progress" on public.course_progress
+drop policy if exists "Progress update own" on public.course_progress;
+create policy "Progress update own" on public.course_progress
   for update to authenticated using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-drop policy if exists "Learners can delete own progress" on public.course_progress;
-create policy "Learners can delete own progress" on public.course_progress
-  for delete to authenticated using ((select auth.uid()) = user_id);
 
 grant select, insert, update on public.profiles to authenticated;
-grant select, insert, update, delete on public.course_progress to authenticated;
-
--- Profiles are created on demand by trusted application logic; no auth.users trigger is required.
+grant select, insert, update on public.course_progress to authenticated;
