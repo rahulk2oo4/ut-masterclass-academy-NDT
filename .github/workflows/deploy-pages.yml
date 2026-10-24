@@ -33,6 +33,7 @@ jobs:
           test -f supabase/seed.sql
           test -f supabase/functions/final-exam/index.ts
           test -f supabase/functions/verify-certificate/index.ts
+          test -f supabase/functions/certificate-pdf/index.ts
           node --check formula-library.js
           node --check academy-sections.js
           node --check admin-dashboard.js
