@@ -45,3 +45,38 @@ This resource does not provide accredited NDT personnel certification or authori
 
 ## Implementation note
 The existing repository is a single-page static HTML/JavaScript application, not the React + TypeScript + Vite stack described in the original project brief. The new sections extend the working application incrementally to avoid discarding existing lesson and Supabase progress functionality. A full React migration, database-driven CMS, secure admin editor, formal final examination, and server-verified certificate workflow remain separate implementation stages.
+
+## Deployment and configuration
+
+This repository currently uses the existing single-page HTML/JavaScript app with GitHub Actions and GitHub Pages. It does **not** currently contain a React + TypeScript + Vite build, so the implementation has been extended incrementally rather than replacing the working lesson experience.
+
+1. In GitHub, open **Settings → Pages** and set the build/deployment source to **GitHub Actions**.
+2. Check the latest run under **Actions → Deploy academy to GitHub Pages**. The workflow validates the JavaScript files, copies the required static assets, and deploys the artifact.
+3. The expected project URL is `https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/`. If a 404 persists after a successful deploy, check the URL shown in **Settings → Pages**, confirm the repository Pages source is GitHub Actions, and allow a few minutes for the first deployment to propagate.
+4. The current static app reads its public Supabase URL and publishable key from `supabase-config.js`. The publishable key is designed for browser use; database access must remain protected by RLS. Never put a Supabase service-role/secret key in browser code or GitHub.
+5. Database schema and migrations are under `supabase/schema.sql` and `supabase/migrations/`; repeatable starter content is in `supabase/seed.sql`. The connected Supabase project has the academy content, bookmark, exam and certificate tables, with RLS enabled.
+
+### Supabase administrator setup
+
+The CMS is visible only to an account whose **trusted Auth app metadata** includes `role: "admin"`. A client-editable profile field is deliberately not used for authorization. To authorize your own verified account, open the Supabase SQL Editor and run the following after replacing the email with the exact account you intend to administer:
+
+```sql
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
+  || '{"role":"admin"}'::jsonb
+where email = 'YOUR_VERIFIED_SIGNUP_EMAIL';
+```
+
+Then sign out and sign back in so the session receives the updated claim. Keep admin assignment restricted to trusted project administrators.
+
+### Final exam and certificates
+
+- The server-side final exam contains 50 randomized mixed-method questions, a 60-minute time limit, a 50% pass mark, and at most two attempts.
+- The exam service checks that all 24 existing lessons and lesson quizzes are marked complete before starting.
+- The answer key remains in the Supabase Edge Function; scoring and certificate issuance occur server-side.
+- Successful learners receive a unique Academy course-completion certificate. Use the certificate page's **Print / Save as PDF** action to save a PDF, and use the QR code/public verification page to check status.
+- Certificates can be revoked by an authorized admin. Academy certificates are educational records and do **not** grant ASNT, ISO 9712 or other external personnel certification.
+
+### Environment template
+
+`.env.example` documents public configuration names for a future Vite migration. The current static site uses `supabase-config.js`; no real secrets belong in `.env.example`.
