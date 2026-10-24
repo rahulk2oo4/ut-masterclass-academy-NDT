@@ -34,3 +34,14 @@ This resource does not provide accredited NDT personnel certification or authori
 - Enable GitHub Pages if not already enabled and verify the workflow passes.
 - Configure Supabase auth redirect URL and verify real email flows.
 - Phone OTP and admin lesson editor are not implemented in this version.
+
+## Current interactive sections
+- Formula Library: searchable formula cards with method/subject/difficulty filters, variable definitions and units, assumptions, worked examples, interactive calculators, local bookmarks, printing, and text-note export.
+- NDT Methods: educational overview of UT, PAUT, TOFD, RT, MT, PT, ET, VT, AE, and IRT.
+- Knowledge Centre: 18 topic categories spanning UT fundamentals, calibration, signal views, automated inspection, composites, reporting, and safety.
+- Videos: supplementary video-search links grouped by topic.
+- Practice Quizzes: mixed-method questions with explanations; the practice target is 50%.
+- Registration profile: full name, learner category, and optional date-of-birth profile field. Date of birth is stored only when provided.
+
+## Implementation note
+The existing repository is a single-page static HTML/JavaScript application, not the React + TypeScript + Vite stack described in the original project brief. The new sections extend the working application incrementally to avoid discarding existing lesson and Supabase progress functionality. A full React migration, database-driven CMS, secure admin editor, formal final examination, and server-verified certificate workflow remain separate implementation stages.
