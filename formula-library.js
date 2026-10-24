@@ -39,6 +39,7 @@
     const style=document.createElement("style");style.id="formulaLibraryStyles";
     style.textContent=`
       .formula-toolbar{display:grid;grid-template-columns:minmax(180px,2fr) repeat(3,minmax(130px,1fr));gap:10px;margin:18px 0}
+      .formula-category-nav{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 4px}.formula-category-nav button{border:1px solid var(--line);border-radius:20px;background:white;color:var(--maroon);padding:7px 11px;font-size:10px;font-weight:700}.formula-category-nav button.active,.formula-category-nav button:hover{background:var(--maroon);border-color:var(--maroon);color:white}
       .formula-control{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink);padding:11px 12px;font-size:12px}
       .formula-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
       .formula-stat{background:white;border:1px solid var(--line);border-radius:12px;padding:14px}.formula-stat strong{display:block;font:800 22px Manrope;color:var(--maroon)}.formula-stat span{font-size:11px;color:var(--muted)}
@@ -140,6 +141,7 @@
       <section class="hero"><div class="eyebrow">Engineering reference desk</div><h1>Formula Library</h1><p>Find the equation, understand each variable, check units, follow a worked example, and explore a calculator. These tools support theory learning and do not replace approved inspection procedures or validated instrument software.</p><div class="hero-actions"><button class="btn btn-outline" id="formulaBack">← Return to Learning Academy</button><button class="btn btn-outline" id="formulaPrint">Print formula notes</button><button class="btn btn-outline" id="formulaDownload">Download notes (.txt)</button></div></section>
       <div class="formula-summary"><div class="formula-stat"><strong>${formulas.length}</strong><span>Reference formulas</span></div><div class="formula-stat"><strong>3</strong><span>Difficulty levels</span></div><div class="formula-stat"><strong id="formulaSavedCount">${bookmarks.size}</strong><span>Saved in this browser</span></div></div>
       <div class="section-head"><div><h2>Search and filter</h2><p>Search by formula name, symbol, keyword, or related lesson.</p></div><span id="formulaCount" style="font-size:11px;color:var(--muted)"></span></div>
+      <div class="formula-category-nav" id="formulaCategoryNav" aria-label="Browse formula categories"></div>
       <div class="formula-toolbar"><input id="formulaSearch" class="formula-control" type="search" placeholder="Search e.g. wavelength, dB, impedance…" aria-label="Search formulas"><select id="formulaMethod" class="formula-control" aria-label="Filter by NDT method"><option value="all">All NDT methods</option>${methods.map(x=>`<option>${esc(x)}</option>`).join("")}</select><select id="formulaSubject" class="formula-control" aria-label="Filter by subject"><option value="all">All subjects</option>${categoryNames.map(x=>`<option>${esc(x)}</option>`).join("")}</select><select id="formulaDifficulty" class="formula-control" aria-label="Filter by difficulty"><option value="all">All difficulty levels</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
       <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin:0 0 14px"><input id="formulaSavedOnly" type="checkbox" style="accent-color:var(--orange)"> Show bookmarked formulas only</label>
       <div id="formulaBookmarkStatus" class="formula-note" aria-live="polite">Bookmarks are saved in this browser. Sign in to sync formula bookmarks to your academy account.</div>
@@ -150,6 +152,8 @@
     $("formulaPrint").onclick=()=>window.print();
     $("formulaDownload").onclick=downloadNotes;
     ["formulaSearch","formulaMethod","formulaSubject","formulaDifficulty","formulaSavedOnly"].forEach(id=>$(id).addEventListener(id==="formulaSearch"?"input":"change",render));
+    $("formulaCategoryNav").innerHTML='<button class="active" data-formula-category="all">All categories</button>'+categoryNames.map(x=>'<button data-formula-category="'+esc(x)+'">'+esc(x)+'</button>').join("");
+    $("formulaCategoryNav").querySelectorAll("[data-formula-category]").forEach(btn=>btn.addEventListener("click",()=>{$("formulaSubject").value=btn.dataset.formulaCategory;render();$("formulaCategoryNav").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.formulaCategory===btn.dataset.formulaCategory));}));
     render();
     loadCloudBookmarks();
     const status=$("formulaBookmarkStatus");
