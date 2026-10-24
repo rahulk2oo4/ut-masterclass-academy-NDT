@@ -26,16 +26,18 @@ jobs:
           test -f supabase-config.js
           test -f formula-library.js
           test -f academy-sections.js
+          test -f admin-dashboard.js
           test -f certificate.html
           test -f verify-certificate.html
           test -f supabase/schema.sql
           node --check formula-library.js
           node --check academy-sections.js
+          node --check admin-dashboard.js
           grep -q "UT Masterclass Academy" index.html
       - name: Prepare static site
         run: |
           mkdir -p _site/supabase
-          cp index.html supabase-config.js formula-library.js academy-sections.js certificate.html verify-certificate.html .nojekyll _site/
+          cp index.html supabase-config.js formula-library.js academy-sections.js admin-dashboard.js certificate.html verify-certificate.html .nojekyll _site/
           cp supabase/schema.sql _site/supabase/schema.sql
           cp README.md _site/README.md
       - name: Configure Pages
