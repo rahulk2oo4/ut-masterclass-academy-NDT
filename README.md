@@ -74,7 +74,7 @@ Then sign out and sign back in so the session receives the updated claim. Keep a
 - The server-side final exam draws 50 randomized questions per attempt from a 60-question mixed-method bank, with a 60-minute time limit, a 50% pass mark, and at most two attempts.
 - The exam service checks that all 24 existing lessons and lesson quizzes are marked complete before starting.
 - The answer key remains in the Supabase Edge Function; scoring and certificate issuance occur server-side.
-- Successful learners receive a unique Academy course-completion certificate. Use the certificate page's **Print / Save as PDF** action to save a PDF, and use the QR code/public verification page to check status.
+- Successful learners receive a unique Academy course-completion certificate. The exam result offers a server-generated PDF stored in a private Supabase Storage bucket; its signed download URL expires after 10 minutes. The certificate page also supports **Print / Save as PDF** and shows the QR code/public verification page.
 - Certificates can be revoked by an authorized admin. Academy certificates are educational records and do **not** grant ASNT, ISO 9712 or other external personnel certification.
 
 ### Environment template
