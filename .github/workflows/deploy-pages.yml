@@ -30,9 +30,22 @@ jobs:
           test -f certificate.html
           test -f verify-certificate.html
           test -f supabase/schema.sql
+          test -f supabase/seed.sql
+          test -f supabase/functions/final-exam/index.ts
+          test -f supabase/functions/verify-certificate/index.ts
           node --check formula-library.js
           node --check academy-sections.js
           node --check admin-dashboard.js
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("index.html").read_text(encoding="utf-8")
+          scripts = re.findall(r'<script(?![^>]*\\bsrc=)[^>]*>(.*?)</script>', html, flags=re.I | re.S)
+          if not scripts:
+              raise SystemExit("No inline JavaScript was found to validate")
+          Path("/tmp/utma-inline.js").write_text("\\n".join(scripts), encoding="utf-8")
+          PY
+          node --check /tmp/utma-inline.js
           grep -q "UT Masterclass Academy" index.html
       - name: Prepare static site
         run: |
