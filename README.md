@@ -36,7 +36,7 @@ This resource does not provide accredited NDT personnel certification or authori
 - Phone OTP and admin lesson editor are not implemented in this version.
 
 ## Current interactive sections
-- Formula Library: searchable formula cards with method/subject/difficulty filters, variable definitions and units, assumptions, worked examples, interactive calculators, local bookmarks, printing, and text-note export.
+- Formula Library: 23 searchable formulas with method/subject/difficulty filters, variable definitions and units, assumptions, worked examples, interactive calculators, local/cloud bookmarks, printing, and text-note export.
 - NDT Methods: educational overview of UT, PAUT, TOFD, RT, MT, PT, ET, VT, AE, and IRT.
 - Knowledge Centre: 18 topic categories spanning UT fundamentals, calibration, signal views, automated inspection, composites, reporting, and safety.
 - Videos: supplementary video-search links grouped by topic.
@@ -71,7 +71,7 @@ Then sign out and sign back in so the session receives the updated claim. Keep a
 
 ### Final exam and certificates
 
-- The server-side final exam contains 50 randomized mixed-method questions, a 60-minute time limit, a 50% pass mark, and at most two attempts.
+- The server-side final exam draws 50 randomized questions per attempt from a 60-question mixed-method bank, with a 60-minute time limit, a 50% pass mark, and at most two attempts.
 - The exam service checks that all 24 existing lessons and lesson quizzes are marked complete before starting.
 - The answer key remains in the Supabase Edge Function; scoring and certificate issuance occur server-side.
 - Successful learners receive a unique Academy course-completion certificate. Use the certificate page's **Print / Save as PDF** action to save a PDF, and use the QR code/public verification page to check status.
