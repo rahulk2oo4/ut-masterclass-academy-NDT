@@ -55,7 +55,7 @@
       .formula-note{background:#fff4e8;border:1px solid #edd6c3;border-radius:10px;padding:13px;font-size:11px;line-height:1.7;color:#704a3b;margin-top:16px}
       @media(max-width:850px){.formula-toolbar{grid-template-columns:1fr 1fr}.formula-list{grid-template-columns:1fr}.formula-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
       @media(max-width:480px){.formula-toolbar{grid-template-columns:1fr}.formula-summary{grid-template-columns:1fr}.formula-inputs{grid-template-columns:1fr}}
-      @media print{body *{visibility:hidden!important}#page,#page *{visibility:visible!important}.formula-toolbar,.formula-actions,.formula-bookmark,.topbar,.sidebar{display:none!important}#page{position:absolute;left:0;top:0;width:100%;max-width:none;padding:0}.formula-list{display:block}.formula-card{break-inside:avoid;margin-bottom:12px;box-shadow:none}.formula-detail{display:block}.formula-detail[open]>*{display:block}}
+      @media print{body *{visibility:hidden!important}#page,#page *{visibility:visible!important}.formula-toolbar,.formula-actions,.formula-bookmark,.topbar,.sidebar,.academy-nav{display:none!important}#page{position:absolute;left:0;top:0;width:100%;max-width:none;padding:0}.formula-list{display:block}.formula-card{break-inside:avoid;margin-bottom:12px;box-shadow:none}.formula-detail{display:block}.formula-detail>summary{display:none!important}.formula-detail>*{display:block!important}}
     `;
     document.head.appendChild(style);
   }
@@ -104,13 +104,14 @@
           <h4>Worked example</h4><p>${esc(f.example)}</p>
           <h4>Calculator</h4><div class="formula-calc"><div class="formula-inputs">${f.inputs.map(([key,label,value])=>`<div class="formula-input"><label>${esc(label)}<input type="number" step="any" value="${value}" data-formula-input="${f.id}" data-key="${key}" aria-label="${esc(label)}"></label></div>`).join("")}</div><div class="formula-result" id="result-${f.id}" aria-live="polite">Adjust the values and select Calculate.</div><div class="formula-actions"><button class="btn btn-primary" data-calculate="${f.id}">Calculate</button><button class="btn btn-outline" data-reset="${f.id}">Reset values</button></div></div>
           <h4>Common mistakes</h4><p>${esc(f.mistakes)}</p>
-          <h4>Related learning lesson</h4><p>${esc(f.lesson)}</p>
+          <h4>Related learning lesson</h4><p>${esc(f.lesson)}</p><button class="btn btn-outline" data-related-lesson="${f.id}">Open related lesson</button>
         </details>
       </article>`).join(""):'<div class="formula-empty">No formulas match these filters. Try a different keyword or choose “All”.</div>';
     $("formulaCards").querySelectorAll("[data-bookmark]").forEach(btn=>btn.addEventListener("click",()=>{
       const id=btn.dataset.bookmark;bookmarks.has(id)?bookmarks.delete(id):bookmarks.add(id);
       localStorage.setItem("utma-formula-bookmarks",JSON.stringify([...bookmarks]));persistBookmark(id,bookmarks.has(id));render();
     }));
+    $("formulaCards").querySelectorAll("[data-related-lesson]").forEach(btn=>btn.addEventListener("click",()=>{const map={"wave-speed":"ut-fundamentals","wavelength":"ut-fundamentals","tof-thickness":"inspection-techniques","travel-distance":"ut-fundamentals","impedance":"ut-fundamentals","reflection":"ut-fundamentals","transmission":"ut-fundamentals","db-amplitude":"calibration","snell":"inspection-techniques","critical-angle":"inspection-techniques","circle-area":"ut-fundamentals","percent-change":"ut-fundamentals","period":"ut-fundamentals","speed-conversion":"ut-fundamentals","mm-to-m":"ut-fundamentals","pythagorean":"ut-fundamentals","rectangle-area":"ut-fundamentals","cylinder-volume":"ut-fundamentals","db-from-amplitude":"calibration","db-power":"calibration"};const slug=map[btn.dataset.relatedLesson]||"ut-fundamentals";if(window.utmaOpenDatabaseLesson)window.utmaOpenDatabaseLesson(slug);else if(window.utmaOpenSection)window.utmaOpenSection("knowledge");}));
     $("formulaCards").querySelectorAll("[data-calculate]").forEach(btn=>btn.addEventListener("click",()=>calculate(btn.dataset.calculate)));
     $("formulaCards").querySelectorAll("[data-reset]").forEach(btn=>btn.addEventListener("click",()=>{
       const f=formulas.find(x=>x.id===btn.dataset.reset);
