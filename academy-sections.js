@@ -57,7 +57,7 @@
     {q:"Does passing an academy quiz grant an accredited NDT personnel certificate?",o:["Yes, automatically","Only if the score is 50%","No; academy learning records are not external personnel certification","Yes, if the user downloads a PDF"],a:2,e:"External certification and employer authorization require their own applicable qualification processes."},
     {q:"Why is probe/water-path alignment important in immersion UT?",o:["It stabilizes sound path and coupling geometry","It increases the material density","It replaces calibration","It changes a C-scan into an X-ray"],a:0,e:"Water path and alignment affect time of flight and repeatability in immersion/squirter systems."}
   ];
-  let quizState=null;
+  let quizState=null;\n  let currentExam=null;\n  let examTimer=null;
   function setActive(name){document.querySelectorAll("#academyNav [data-section]").forEach(b=>{if(b.dataset.section===name)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
   function heading(eyebrow,title,subtitle,back=true){return '<section class="hero"><div class="eyebrow">'+esc(eyebrow)+'</div><h1>'+esc(title)+'</h1><p>'+esc(subtitle)+'</p><div class="hero-actions">'+(back?'<button class="btn btn-outline" data-back-academy>← Learning Academy</button>':'')+'</div></section>';}
   function attachBack(){document.querySelectorAll("[data-back-academy]").forEach(b=>b.onclick=()=>{setActive("academy");window.utmaRenderDashboard?.();});}
@@ -94,7 +94,83 @@
     function drawQuiz(){quizState=[...quizBank].sort(()=>Math.random()-.5);const form=$("practiceQuizForm");form.innerHTML=quizState.map((q,i)=>'<fieldset class="question" style="border:0;border-top:1px solid var(--line);padding:14px 0"><legend class="question-title">'+(i+1)+'. '+esc(q.q)+'</legend>'+q.o.map((o,j)=>'<label class="option"><input required type="radio" name="pq'+i+'" value="'+j+'"><span>'+esc(o)+'</span></label>').join("")+'</fieldset>').join("");$("practiceQuizResult").innerHTML="";$("submitPracticeQuiz").style.display="inline-block";$("submitPracticeQuiz").onclick=()=>{if(!form.reportValidity())return;let correct=0;const feedback=[];quizState.forEach((q,i)=>{const selected=Number(form.querySelector('input[name="pq'+i+'"]:checked').value);if(selected===q.a)correct++;feedback.push('<div class="feedback '+(selected===q.a?"good":"bad")+'">'+(i+1)+'. '+(selected===q.a?"Correct. ":"Review. ")+esc(q.e)+'</div>');});const score=Math.round(correct/quizState.length*100);$("practiceQuizResult").innerHTML='<div class="quiz-result"><b>Score: '+score+'% ('+correct+'/'+quizState.length+')</b> — '+(score>=50?"You met the 50% practice target. Continue reviewing explanations.":"Below the 50% practice target. Review the explanations and try again.")+'</div>'+feedback.join("");$("submitPracticeQuiz").style.display="none";};}
     $("newPracticeQuiz").onclick=drawQuiz;drawQuiz();attachBack();
   }
-  function go(section){if(section==="formulas"){setActive(section);window.utmaOpenFormulaLibrary?.();return;}if(section==="home"||section==="academy"){setActive(section);$("crumbPage").textContent=section==="home"?"Dashboard":"Learning Academy";window.utmaRenderDashboard?.();return;}if(section==="methods")return openMethods();if(section==="knowledge")return openKnowledge();if(section==="videos")return openVideos();if(section==="quizzes")return openQuizzes();if(section==="about")return openAbout();}
+  async function openFinalExam(){
+    setActive("final-exam");$("crumbPage").textContent="Final Exam";
+    if(examTimer){clearInterval(examTimer);examTimer=null;}
+    currentExam=null;
+    $("page").innerHTML=heading("Final assessment","Final NDT theory examination","A 50-question mixed-method assessment covering basic through advanced NDT theory. Time limit: 60 minutes. Pass mark: 50%. Maximum: two attempts.")+
+    '<div class="formula-card" style="margin-top:18px"><h3>Eligibility requirements</h3><p>All 24 learning classes must be marked complete and all 24 lesson quizzes must be passed before the server will start the final exam.</p><ul><li>50 randomized questions across UT, PAUT, TOFD, RT, MT, PT, ET, VT, AE, IRT, composites, calibration, reporting and safety.</li><li>60-minute server-enforced time limit.</li><li>Two attempts maximum.</li><li>Answers are scored server-side. The answer key is not sent to the browser.</li><li>A passing result issues an Academy course-completion certificate with a unique verification number.</li></ul><div id="examStatus" class="formula-note">Sign in and complete all lesson requirements to begin.</div><div class="formula-actions"><button class="btn btn-primary" id="startFinalExam">Start / Resume Final Exam</button><button class="btn btn-outline" id="examSignIn">Sign in</button></div></div><div class="formula-note"><b>Important:</b> This is an educational course-completion certificate, not ASNT, ISO 9712 or other accredited personnel certification and not authorization to inspect production parts independently.</div>';
+    attachBack();
+    $("examSignIn").onclick=()=> $("authBtn").click();
+    $("startFinalExam").onclick=startExam;
+    if(window.utmaCurrentUser) $("examStatus").textContent="Signed in. The server will check your lesson and quiz eligibility before starting.";
+    else $("examStatus").textContent="Sign in first. If the button reports incomplete lessons or quizzes, finish those in the Learning Academy and try again.";
+  }
+  function functionErrorMessage(error,data){
+    if(data?.error)return data.error;
+    return error?.message||"The request could not be completed. Check your connection and try again.";
+  }
+  async function startExam(){
+    const client=window.utmaSupabase;
+    if(!window.utmaCurrentUser){$("examStatus").textContent="Please sign in before starting the final exam.";$("authBtn").click();return;}
+    if(!client){$("examStatus").textContent="Supabase is not available in this session.";return;}
+    $("startFinalExam").disabled=true;$("examStatus").textContent="Checking eligibility and preparing the exam…";
+    try{
+      const {data,error}=await client.functions.invoke("final-exam",{body:{action:"start"}});
+      if(error){
+        let payload=null;try{payload=await error.context?.json?.();}catch{}
+        $("examStatus").textContent=functionErrorMessage(error,payload);
+        return;
+      }
+      if(data?.error){$("examStatus").textContent=data.error;return;}
+      if(data?.already_passed){showCertificateResult({passed:true,score:data.certificate.score,certificate:data.certificate,attempts_remaining:0});return;}
+      currentExam=data;
+      renderExamQuestions(data);
+    }catch(e){$("examStatus").textContent=e?.message||"Unable to start the exam right now.";}
+    finally{const btn=$("startFinalExam");if(btn)btn.disabled=false;}
+  }
+  function renderExamQuestions(data){
+    const qs=data.questions||[];
+    $("page").innerHTML=heading("Final assessment in progress","Final NDT theory examination","Answer all questions before the timer expires. Your attempt is bound to your account and checked by the server.")+
+    '<div class="formula-card" style="margin-top:18px"><div class="section-head" style="margin-top:0"><div><h2>50 questions</h2><p>Pass mark '+esc(data.pass_mark)+'% · Attempt '+esc(data.attempts_used)+' of 2</p></div><div class="formula-stat"><strong id="examCountdown">60:00</strong><span>Time remaining</span></div></div><form id="finalExamForm">'+qs.map((q,i)=>'<fieldset class="question" style="border:0;border-top:1px solid var(--line);padding:14px 0"><legend class="question-title">'+(i+1)+'. <span class="formula-tag">'+esc(q.method)+'</span><br>'+esc(q.question)+'</legend>'+q.options.map((o,j)=>'<label class="option"><input type="radio" required name="exam-'+esc(q.id)+'" value="'+j+'"><span>'+esc(o)+'</span></label>').join("")+'</fieldset>').join("")+'</form><div id="examSubmitStatus" class="formula-note">Do not refresh unnecessarily. If you return during the active attempt, the server can resume it until the deadline.</div><button class="btn btn-primary" id="submitFinalExam">Submit final exam</button></div>';
+    attachBack();
+    function tick(){
+      const remain=Math.max(0,Math.floor((new Date(data.expires_at).getTime()-Date.now())/1000));
+      const node=$("examCountdown");if(node)node.textContent=String(Math.floor(remain/60)).padStart(2,"0")+":"+String(remain%60).padStart(2,"0");
+      if(remain<=0&&examTimer){clearInterval(examTimer);examTimer=null;submitExam(true);}
+    }
+    tick();examTimer=setInterval(tick,1000);
+    $("submitFinalExam").onclick=()=>submitExam(false);
+  }
+  async function submitExam(timedOut){
+    if(!currentExam)return;
+    const client=window.utmaSupabase,form=$("finalExamForm");
+    if(!timedOut&&!form.reportValidity())return;
+    const answers={};
+    (currentExam.questions||[]).forEach(q=>{const selected=form.querySelector('input[name="exam-'+q.id+'"]:checked');if(selected)answers[q.id]=Number(selected.value);});
+    const submit=$("submitFinalExam");if(submit)submit.disabled=true;
+    const status=$("examSubmitStatus");if(status)status.textContent=timedOut?"Time expired. Submitting your attempt…":"Scoring your attempt securely…";
+    if(examTimer){clearInterval(examTimer);examTimer=null;}
+    try{
+      const {data,error}=await client.functions.invoke("final-exam",{body:{action:"submit",attempt_id:currentExam.attempt_id,answers}});
+      if(error){let payload=null;try{payload=await error.context?.json?.();}catch{};if(status)status.textContent=functionErrorMessage(error,payload);if(submit)submit.disabled=false;return;}
+      if(data?.error){if(status)status.textContent=data.error;if(submit)submit.disabled=false;return;}
+      showCertificateResult(data);
+    }catch(e){if(status)status.textContent=e?.message||"Could not submit the exam. Retry while the attempt is still active.";if(submit)submit.disabled=false;}
+  }
+  function showCertificateResult(data){
+    setActive("final-exam");$("crumbPage").textContent="Exam Result";
+    const certificate=data.certificate||null;
+    const passed=!!data.passed;
+    const score=Number(data.score??certificate?.score??0);
+    const certLink=certificate?.certificate_number?' <a class="btn btn-primary" style="display:inline-block;text-decoration:none" href="./certificate.html?number='+encodeURIComponent(certificate.certificate_number)+'" target="_blank" rel="noopener">View / Print Certificate ↗</a>':'';
+    $("page").innerHTML=heading("Final assessment result",passed?"Congratulations — exam passed":"Exam result","Your result is recorded by the Academy exam service. Review your score and remaining attempt allowance.")+
+    '<div class="formula-card" style="margin-top:18px"><div class="formula-stat"><strong>'+esc(score)+'%</strong><span>Final exam score</span></div><p><b>Status:</b> '+(passed?'<span style="color:var(--green)">Passed</span>':'Not passed')+' · Pass mark 50%</p><p><b>Attempts remaining:</b> '+esc(data.attempts_remaining??0)+'</p>'+(data.expired?'<p>The server recorded the attempt as expired.</p>':'')+(certificate?'<p><b>Certificate number:</b> '+esc(certificate.certificate_number)+'</p><p>Issued: '+esc(new Date(certificate.issued_at).toLocaleDateString())+'</p>':'')+'<div class="formula-actions">'+certLink+'<button class="btn btn-outline" id="returnAcademy">Return to Learning Academy</button>'+(data.attempts_remaining>0&&!passed?'<button class="btn btn-primary" id="retryFinalExam">Use remaining attempt</button>':'')+'</div></div><div class="formula-note">This Academy certificate records course learning and an exam result. It is not an external NDT personnel qualification or production inspection authorization.</div>';
+    $("returnAcademy").onclick=()=>{setActive("academy");window.utmaRenderDashboard?.();};
+    if($("retryFinalExam"))$("retryFinalExam").onclick=()=>openFinalExam().then(startExam);
+    attachBack();
+  }
+  function go(section){if(section==="formulas"){setActive(section);window.utmaOpenFormulaLibrary?.();return;}if(section==="home"||section==="academy"){setActive(section);$("crumbPage").textContent=section==="home"?"Dashboard":"Learning Academy";window.utmaRenderDashboard?.();return;}if(section==="methods")return openMethods();if(section==="knowledge")return openKnowledge();if(section==="videos")return openVideos();if(section==="quizzes")return openQuizzes();if(section==="final-exam")return openFinalExam();if(section==="about")return openAbout();}
   document.addEventListener("DOMContentLoaded",()=>{
     const nav=$("academyNav");if(nav)nav.addEventListener("click",e=>{const b=e.target.closest("[data-section]");if(b)go(b.dataset.section);});
     window.addEventListener("utma:formula-close",()=>setActive("academy"));
