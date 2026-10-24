@@ -107,6 +107,26 @@
       draw();
     }catch(error){host.innerHTML='<div class="formula-empty">Could not load published content: '+esc(error.message||"Supabase query failed")+'</div>';}
   }
+  async function openDatabaseLesson(slug){
+    setActive("academy");$("crumbPage").textContent="Database lesson";
+    const client=window.utmaSupabase;
+    if(!client){$("page").innerHTML=heading("Database lesson","Supabase connection required","Sign in or configure the Supabase project to load this lesson.");attachBack();return;}
+    $("page").innerHTML=heading("Database lesson","Loading lesson…","Retrieving published lesson content from Supabase.");
+    try{
+      const {data,error}=await client.from("lessons").select("id,title,slug,difficulty,content,module_id").eq("slug",slug).eq("is_published",true).single();
+      if(error)throw error;
+      const content=data.content||{};
+      const block=(title,value)=>{if(!value||(Array.isArray(value)&&!value.length))return "";const val=Array.isArray(value)?'<ul>'+value.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>':'<p style="white-space:pre-line">'+esc(value)+'</p>';return '<article class="formula-card"><h3>'+esc(title)+'</h3>'+val+'</article>';};
+      const explanation=Array.isArray(content.explanation)?content.explanation.map(x=>'<p>'+esc(x)+'</p>').join(""):'<p>'+esc(content.explanation||"")+'</p>';
+      $("page").innerHTML=heading("Published database lesson",data.title,content.introduction||"Lesson content loaded from the academy database.")+
+      '<div class="formula-meta"><span class="formula-tag">'+esc(data.difficulty)+'</span><span class="formula-tag">Supabase published content</span></div>'+
+      block("Learning objectives",content.learning_objectives)+
+      '<article class="formula-card"><h3>Main explanation</h3>'+explanation+'</article>'+
+      block("Equations",content.equations)+block("Worked example",content.worked_example)+block("Practical activity",content.practical_activity)+block("Common mistakes",content.common_mistakes)+block("Summary",content.summary)+block("Key terminology",content.terminology)+block("References",content.references)+
+      '<div class="formula-note">This is educational theory content. Apply the relevant approved inspection procedure and governing requirements for real inspections.</div>';
+      attachBack();
+    }catch(error){$("page").innerHTML=heading("Published database lesson","Lesson unavailable",error.message||"The lesson could not be loaded.")+'<div class="formula-note">Check that the lesson is published and that Supabase read policies permit access.</div>';attachBack();}
+  }
   function openVideos(){
     setActive("videos");$("crumbPage").textContent="Videos";
     $("page").innerHTML=heading("Video learning desk","NDT Videos & Demonstrations","Find supplementary visual explanations for UT fundamentals, calibration, PAUT, TOFD, C-scan and composite inspection. External video availability and quality may change.")+
@@ -207,5 +227,6 @@
     const nav=$("academyNav");if(nav)nav.addEventListener("click",e=>{const b=e.target.closest("[data-section]");if(b)go(b.dataset.section);});
     window.addEventListener("utma:formula-close",()=>setActive("academy"));
     window.utmaOpenSection=go;
+    window.utmaOpenDatabaseLesson=openDatabaseLesson;
   });
 })();
