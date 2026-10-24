@@ -127,5 +127,6 @@ window.utmaRenderDashboard=renderDashboard;\nloadLocal();renderNav();renderDashb
 if(sb){sb.auth.getSession().then(async({data})=>{state.session=data.session;state.user=data.session?.user||null;updateAuthUI();if(state.user?.email_confirmed_at)await loadCloudProgress();});sb.auth.onAuthStateChange((event,session)=>{state.session=session;state.user=session?.user||null;updateAuthUI();if(event==="PASSWORD_RECOVERY"){setAuthMode("newpassword");$("authModal").classList.add("open");authMessage("Choose a new password to complete account recovery.");}if(state.user?.email_confirmed_at)loadCloudProgress();});}
 </script>
 <script src="./formula-library.js"></script>
-<script src="./academy-sections.js"></script>\n</body>
+<script src="./academy-sections.js"></script>
+</body>
 </html>
