@@ -40,10 +40,10 @@ jobs:
           import re
           from pathlib import Path
           html = Path("index.html").read_text(encoding="utf-8")
-          scripts = re.findall(r'<script(?![^>]*\\bsrc=)[^>]*>(.*?)</script>', html, flags=re.I | re.S)
+          scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', html, flags=re.I | re.S)
           if not scripts:
               raise SystemExit("No inline JavaScript was found to validate")
-          Path("/tmp/utma-inline.js").write_text("\\n".join(scripts), encoding="utf-8")
+          Path("/tmp/utma-inline.js").write_text("\n".join(scripts), encoding="utf-8")
           PY
           node --check /tmp/utma-inline.js
           grep -q "UT Masterclass Academy" index.html
