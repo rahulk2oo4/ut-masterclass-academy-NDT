@@ -323,3 +323,8 @@ create index if not exists quiz_attempts_quiz_idx on public.quiz_attempts(quiz_i
 create index if not exists quiz_attempts_user_idx on public.quiz_attempts(user_id);
 create index if not exists quizzes_lesson_idx on public.quizzes(lesson_id);
 
+-- Avoid per-row evaluation of auth.jwt() in quiz answer-key policy.
+drop policy if exists "Admins manage quiz answer keys" on public.quiz_answer_keys;
+create policy "Admins manage quiz answer keys" on public.quiz_answer_keys for all to authenticated
+using (((select auth.jwt())->'app_metadata'->>'role')='admin')
+with check (((select auth.jwt())->'app_metadata'->>'role')='admin');
