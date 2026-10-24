@@ -50,6 +50,26 @@
     `;
     document.head.appendChild(style);
   }
+  async function persistBookmark(id, saved){
+    const client=window.utmaSupabase, user=window.utmaCurrentUser;
+    if(!client||!user)return;
+    let result;
+    if(saved) result=await client.from("bookmarks").upsert({user_id:user.id,item_type:"formula",item_id:id},{onConflict:"user_id,item_type,item_id"});
+    else result=await client.from("bookmarks").delete().eq("user_id",user.id).eq("item_type","formula").eq("item_id",id);
+    if(result?.error){console.warn("Formula bookmark sync failed:",result.error.message);const status=$("formulaBookmarkStatus");if(status)status.textContent="Cloud bookmark sync needs attention; this browser still has a local copy.";}
+  }
+  async function loadCloudBookmarks(){
+    const client=window.utmaSupabase, user=window.utmaCurrentUser;
+    if(!client||!user)return;
+    const {data,error}=await client.from("bookmarks").select("item_id").eq("user_id",user.id).eq("item_type","formula");
+    if(error){console.warn("Could not load cloud formula bookmarks:",error.message);return;}
+    const cloud=new Set((data||[]).map(row=>row.item_id));
+    const localOnly=[...bookmarks].filter(id=>!cloud.has(id));
+    cloud.forEach(id=>bookmarks.add(id));
+    localStorage.setItem("utma-formula-bookmarks",JSON.stringify([...bookmarks]));
+    for(const id of localOnly)await persistBookmark(id,true);
+    if(active)render();
+  }
   function render(){
     const q=($("formulaSearch")?.value||"").trim().toLowerCase();
     const method=$("formulaMethod")?.value||"all";
@@ -80,7 +100,7 @@
       </article>`).join(""):'<div class="formula-empty">No formulas match these filters. Try a different keyword or choose “All”.</div>';
     $("formulaCards").querySelectorAll("[data-bookmark]").forEach(btn=>btn.addEventListener("click",()=>{
       const id=btn.dataset.bookmark;bookmarks.has(id)?bookmarks.delete(id):bookmarks.add(id);
-      localStorage.setItem("utma-formula-bookmarks",JSON.stringify([...bookmarks]));render();
+      localStorage.setItem("utma-formula-bookmarks",JSON.stringify([...bookmarks]));persistBookmark(id,bookmarks.has(id));render();
     }));
     $("formulaCards").querySelectorAll("[data-calculate]").forEach(btn=>btn.addEventListener("click",()=>calculate(btn.dataset.calculate)));
     $("formulaCards").querySelectorAll("[data-reset]").forEach(btn=>btn.addEventListener("click",()=>{
@@ -112,6 +132,7 @@
       <div class="section-head"><div><h2>Search and filter</h2><p>Search by formula name, symbol, keyword, or related lesson.</p></div><span id="formulaCount" style="font-size:11px;color:var(--muted)"></span></div>
       <div class="formula-toolbar"><input id="formulaSearch" class="formula-control" type="search" placeholder="Search e.g. wavelength, dB, impedance…" aria-label="Search formulas"><select id="formulaMethod" class="formula-control" aria-label="Filter by NDT method"><option value="all">All NDT methods</option>${methods.map(x=>`<option>${esc(x)}</option>`).join("")}</select><select id="formulaSubject" class="formula-control" aria-label="Filter by subject"><option value="all">All subjects</option>${categoryNames.map(x=>`<option>${esc(x)}</option>`).join("")}</select><select id="formulaDifficulty" class="formula-control" aria-label="Filter by difficulty"><option value="all">All difficulty levels</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
       <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin:0 0 14px"><input id="formulaSavedOnly" type="checkbox" style="accent-color:var(--orange)"> Show bookmarked formulas only</label>
+      <div id="formulaBookmarkStatus" class="formula-note" aria-live="polite">Bookmarks are saved in this browser. Sign in to sync formula bookmarks to your academy account.</div>
       <div class="formula-list" id="formulaCards"></div>
       <div class="formula-note"><b>Technical note:</b> Equations are simplified educational references. Confirm material properties, units, geometry, wave mode, instrument setup and applicable code/procedure before using any calculation in an inspection. A calculator result is not an acceptance decision.</div>
       <div class="footer">UT Masterclass Academy · Formula Library · Original educational content</div>`;
@@ -120,6 +141,9 @@
     $("formulaDownload").onclick=downloadNotes;
     ["formulaSearch","formulaMethod","formulaSubject","formulaDifficulty","formulaSavedOnly"].forEach(id=>$(id).addEventListener(id==="formulaSearch"?"input":"change",render));
     render();
+    loadCloudBookmarks();
+    const status=$("formulaBookmarkStatus");
+    if(status&&window.utmaCurrentUser)status.textContent="Signed-in formula bookmarks sync with your academy account.";
   }
   function downloadNotes(){
     const lines=["UT MASTERCLASS ACADEMY — FORMULA LIBRARY","Educational reference only; verify all calculations against applicable procedures.","",...formulas.map(f=>[f.name,f.symbol,"Method: "+f.method+" | Subject: "+f.subject+" | Difficulty: "+f.difficulty,f.explain,"Variables:",...f.vars.map(v=>v[0]+" — "+v[1]+" ["+v[2]+"]"),"Assumptions: "+f.assumptions,"Worked example: "+f.example,"Common mistakes: "+f.mistakes,"Related lesson: "+f.lesson,""].join("\n"))];
