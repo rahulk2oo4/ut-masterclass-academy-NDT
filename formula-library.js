@@ -125,6 +125,7 @@
     const lines=["UT MASTERCLASS ACADEMY — FORMULA LIBRARY","Educational reference only; verify all calculations against applicable procedures.","",...formulas.map(f=>[f.name,f.symbol,"Method: "+f.method+" | Subject: "+f.subject+" | Difficulty: "+f.difficulty,f.explain,"Variables:",...f.vars.map(v=>v[0]+" — "+v[1]+" ["+v[2]+"]"),"Assumptions: "+f.assumptions,"Worked example: "+f.example,"Common mistakes: "+f.mistakes,"Related lesson: "+f.lesson,""].join("\n"))];
     const blob=new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ut-masterclass-formula-library.txt";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
   }
+  window.utmaOpenFormulaLibrary=open;
   document.addEventListener("DOMContentLoaded",()=>{
     mountStyles();
     const btn=$("formulaBtn");
