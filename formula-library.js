@@ -181,7 +181,19 @@
       f.inputs.forEach(([key,,value])=>{const el=$("formulaCards").querySelector('[data-formula-input="'+f.id+'"][data-key="'+key+'"]');if(el)el.value=value;});
       calculate(f.id);
     }));
-    $("formulaCards").querySelectorAll("[data-formula-input]").forEach(input=>input.addEventListener("keydown",e=>{if(e.key==="Enter")calculate(input.dataset.formulaInput);}));
+    $("formulaCards").querySelectorAll("[data-formula-input]").forEach(input=>{
+      input.addEventListener("input",()=>calculate(input.dataset.formulaInput));
+      input.addEventListener("keydown",e=>{if(e.key==="Enter")calculate(input.dataset.formulaInput);});
+    });
+    // Keep a short local history for revision; this is not shared across accounts/devices.
+    $("formulaCards").querySelectorAll(".formula-card details").forEach(detail=>detail.addEventListener("toggle",()=>{
+      if(!detail.open)return;
+      const card=detail.closest(".formula-card");if(!card)return;
+      const id=card.id.replace("formula-","");
+      let recent=[];try{recent=JSON.parse(localStorage.getItem("utma-recent-formulas")||"[]");}catch(_){}
+      recent=[id,...recent.filter(x=>x!==id)].slice(0,8);
+      localStorage.setItem("utma-recent-formulas",JSON.stringify(recent));
+    }));
     $("formulaSavedCount").textContent=bookmarks.size;
   }
   function calculate(id){
