@@ -57,7 +57,9 @@
     {q:"Does passing an academy quiz grant an accredited NDT personnel certificate?",o:["Yes, automatically","Only if the score is 50%","No; academy learning records are not external personnel certification","Yes, if the user downloads a PDF"],a:2,e:"External certification and employer authorization require their own applicable qualification processes."},
     {q:"Why is probe/water-path alignment important in immersion UT?",o:["It stabilizes sound path and coupling geometry","It increases the material density","It replaces calibration","It changes a C-scan into an X-ray"],a:0,e:"Water path and alignment affect time of flight and repeatability in immersion/squirter systems."}
   ];
-  let quizState=null;\n  let currentExam=null;\n  let examTimer=null;
+  let quizState=null;
+  let currentExam=null;
+  let examTimer=null;
   function setActive(name){document.querySelectorAll("#academyNav [data-section]").forEach(b=>{if(b.dataset.section===name)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
   function heading(eyebrow,title,subtitle,back=true){return '<section class="hero"><div class="eyebrow">'+esc(eyebrow)+'</div><h1>'+esc(title)+'</h1><p>'+esc(subtitle)+'</p><div class="hero-actions">'+(back?'<button class="btn btn-outline" data-back-academy>← Learning Academy</button>':'')+'</div></section>';}
   function attachBack(){document.querySelectorAll("[data-back-academy]").forEach(b=>b.onclick=()=>{setActive("academy");window.utmaRenderDashboard?.();});}
