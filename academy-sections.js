@@ -71,9 +71,41 @@
   function openKnowledge(){
     setActive("knowledge");$("crumbPage").textContent="Knowledge Centre";
     $("page").innerHTML=heading("Technical knowledge library","NDT Knowledge Centre","Browse 18 structured topic areas covering conventional UT, calibration, signal interpretation, automated inspection, composites and safety.")+
-    '<div class="formula-toolbar"><input id="knowledgeSearch" class="formula-control" type="search" placeholder="Search the knowledge library…" aria-label="Search knowledge topics"><select id="knowledgeLevel" class="formula-control"><option value="all">All topic groups</option><option value="core">Core UT</option><option value="advanced">Advanced & automation</option><option value="practice">Practice & safety</option></select></div><div id="knowledgeCards" class="formula-list"></div>';
+    '<div class="formula-toolbar"><input id="knowledgeSearch" class="formula-control" type="search" placeholder="Search the knowledge library…" aria-label="Search knowledge topics"><select id="knowledgeLevel" class="formula-control"><option value="all">All topic groups</option><option value="core">Core UT</option><option value="advanced">Advanced & automation</option><option value="practice">Practice & safety</option></select></div><div id="knowledgeCards" class="formula-list"></div><section class="formula-card" style="margin-top:24px"><div class="section-head" style="margin-top:0"><div><h2>Published database lessons and resources</h2><p>Live published content loaded from Supabase, not sample search results.</p></div></div><input id="databaseLearningSearch" class="formula-control" type="search" placeholder="Search published lessons, glossary and resources…" aria-label="Search published lessons and resources"><div id="databaseLearningCards" class="formula-list" style="margin-top:14px"><div class="formula-empty">Loading published content…</div></div></section>';
     function draw(){const q=$("knowledgeSearch").value.toLowerCase(),level=$("knowledgeLevel").value;const arr=knowledge.map((k,i)=>({title:k[0],desc:k[1],i})).filter(k=>(!q||(k.title+" "+k.desc).toLowerCase().includes(q))&&(level==="all"||(level==="core"&&k.i<10)||(level==="advanced"&&k.i>=10&&k.i<=15)||(level==="practice"&&k.i>=16)));$("knowledgeCards").innerHTML=arr.map(k=>'<article class="formula-card"><div class="formula-meta"><span class="formula-tag">Topic '+String(k.i+1).padStart(2,"0")+'</span><span class="formula-tag">'+(k.i<10?"Core UT":k.i<=15?"Advanced & automation":"Practice & safety")+'</span></div><h3>'+esc(k.title)+'</h3><p>'+esc(k.desc)+'</p><button class="btn btn-outline" data-topic="'+k.i+'">Study this topic</button></article>').join("")||'<div class="formula-empty">No topics match your search.</div>';document.querySelectorAll("[data-topic]").forEach(b=>b.onclick=()=>{const k=knowledge[Number(b.dataset.topic)];$("knowledgeCards").insertAdjacentHTML("afterbegin",'<div class="formula-note" role="status"><b>'+esc(k[0])+'</b><br>'+esc(k[1])+'<br><br>Continue in the related course module or use the search box to find connected lessons.</div>');});}
-    $("knowledgeSearch").addEventListener("input",draw);$("knowledgeLevel").addEventListener("change",draw);draw();attachBack();
+    $("knowledgeSearch").addEventListener("input",draw);$("knowledgeLevel").addEventListener("change",draw);draw();loadPublishedLearning();attachBack();
+  }
+  async function loadPublishedLearning(){
+    const host=$("databaseLearningCards"),search=$("databaseLearningSearch"),client=window.utmaSupabase;
+    if(!host)return;
+    if(!client){host.innerHTML='<div class="formula-empty">Published database lessons are available when the Supabase connection is configured.</div>';return;}
+    try{
+      const [courseRes,moduleRes,lessonRes,glossaryRes,resourceRes]=await Promise.all([
+        client.from("courses").select("id,title,slug,description").eq("is_published",true),
+        client.from("modules").select("id,course_id,title,position,description").eq("is_published",true).order("position"),
+        client.from("lessons").select("id,module_id,title,slug,position,difficulty,content").eq("is_published",true).order("position"),
+        client.from("glossary_terms").select("term,definition,method").eq("is_published",true).order("term"),
+        client.from("learning_resources").select("title,description,url,resource_type,category").eq("is_published",true).order("title")
+      ]);
+      const failed=[courseRes,moduleRes,lessonRes,glossaryRes,resourceRes].find(x=>x.error);
+      if(failed)throw failed.error;
+      const courses=courseRes.data||[],modules=moduleRes.data||[],lessons=lessonRes.data||[],terms=glossaryRes.data||[],resources=resourceRes.data||[];
+      const entries=[];
+      lessons.forEach(l=>{const m=modules.find(x=>x.id===l.module_id);const course=courses.find(x=>x.id===m?.course_id);const content=l.content||{};entries.push({kind:"Lesson",title:l.title,category:(course?.title||"Course")+" · "+(m?.title||"Module"),description:content.introduction||m?.description||"",details:[["Learning objectives",Array.isArray(content.learning_objectives)?content.learning_objectives.join(" · "):""],["Main explanation",Array.isArray(content.explanation)?content.explanation.join("\n\n"):content.explanation||""],["Equations",Array.isArray(content.equations)?content.equations.join(" · "):""],["Worked example",content.worked_example||""],["Practical activity",content.practical_activity||""],["Common mistakes",Array.isArray(content.common_mistakes)?content.common_mistakes.join(" · "):""],["Summary",content.summary||""],["References",Array.isArray(content.references)?content.references.join(" · "):""]],slug:l.slug,difficulty:l.difficulty});});
+      terms.forEach(t=>entries.push({kind:"Glossary",title:t.term,category:t.method,description:t.definition,details:[],slug:""}));
+      resources.forEach(r=>entries.push({kind:"Resource",title:r.title,category:r.category+" · "+r.resource_type,description:r.description,details:[],url:r.url}));
+      function draw(){
+        const q=(search?.value||"").toLowerCase().trim();
+        const visible=entries.filter(e=>!q||[e.kind,e.title,e.category,e.description,e.slug].join(" ").toLowerCase().includes(q));
+        host.innerHTML=visible.length?visible.map((e,i)=>{
+          const url=typeof e.url==="string"&&/^https?:\/\//i.test(e.url)?e.url:null;
+          const details=e.details?.filter(d=>d[1])||[];
+          return '<article class="formula-card"><div class="formula-meta"><span class="formula-tag">'+esc(e.kind)+'</span><span class="formula-tag">'+esc(e.category)+'</span>'+(e.difficulty?'<span class="formula-tag">'+esc(e.difficulty)+'</span>':"")+'</div><h3>'+esc(e.title)+'</h3><p>'+esc(e.description)+'</p>'+(details.length?'<details class="formula-detail"><summary>Read full lesson content</summary>'+details.map(d=>'<h4>'+esc(d[0])+'</h4><p style="white-space:pre-line">'+esc(d[1])+'</p>').join("")+'</details>':"")+(url?'<p><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open resource ↗</a></p>':"")+'</article>';
+        }).join(""):'<div class="formula-empty">No published lessons or resources match this search.</div>';
+      }
+      if(search)search.addEventListener("input",draw);
+      draw();
+    }catch(error){host.innerHTML='<div class="formula-empty">Could not load published content: '+esc(error.message||"Supabase query failed")+'</div>';}
   }
   function openVideos(){
     setActive("videos");$("crumbPage").textContent="Videos";
