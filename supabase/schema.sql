@@ -7,6 +7,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null default 'Learner',
   learner_type text not null default 'Working Professional',
+  date_of_birth date,
   email text,
   phone text,
   created_at timestamptz not null default now(),
