@@ -224,3 +224,102 @@ drop policy if exists "Admins update academy resource files" on storage.objects;
 create policy "Admins update academy resource files" on storage.objects for update to authenticated using(bucket_id='academy-resources' and (select auth.jwt()->'app_metadata'->>'role')='admin') with check(bucket_id='academy-resources' and (select auth.jwt()->'app_metadata'->>'role')='admin');
 drop policy if exists "Admins delete academy resource files" on storage.objects;
 create policy "Admins delete academy resource files" on storage.objects for delete to authenticated using(bucket_id='academy-resources' and (select auth.jwt()->'app_metadata'->>'role')='admin');
+
+create table if not exists public.practical_assessments (
+ id uuid primary key default gen_random_uuid(),
+ user_id uuid not null references auth.users(id) on delete cascade,
+ assessment_title text not null,
+ assessor_name text not null,
+ checklist jsonb not null default '[]'::jsonb,
+ status text not null default 'pending' check(status in ('pending','passed','needs_review')),
+ notes text not null default '',
+ assessed_at timestamptz,
+ created_at timestamptz not null default now(),
+ updated_at timestamptz not null default now()
+);
+create index if not exists practical_assessments_user_idx on public.practical_assessments(user_id,created_at desc);
+alter table public.practical_assessments enable row level security;
+drop policy if exists "Users read own practical assessments" on public.practical_assessments;
+create policy "Users read own practical assessments" on public.practical_assessments for select to authenticated using((select auth.uid())=user_id);
+drop policy if exists "Admins manage practical assessments" on public.practical_assessments;
+create policy "Admins manage practical assessments" on public.practical_assessments for all to authenticated using((select auth.jwt()->'app_metadata'->>'role')='admin') with check((select auth.jwt()->'app_metadata'->>'role')='admin');
+grant select on public.practical_assessments to authenticated;
+grant select,insert,update,delete on public.practical_assessments to authenticated;
+
+
+-- Combine read access and keep administrator mutations separate.
+drop policy if exists "Published courses readable" on public.courses;
+drop policy if exists "Admins manage courses" on public.courses;
+create policy "Courses read published or admin" on public.courses for select to anon,authenticated using(is_published or ((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins insert courses" on public.courses for insert to authenticated with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins update courses" on public.courses for update to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin') with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins delete courses" on public.courses for delete to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Published modules readable" on public.modules;
+drop policy if exists "Admins manage modules" on public.modules;
+create policy "Modules read published or admin" on public.modules for select to anon,authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin' or (is_published and exists(select 1 from public.courses c where c.id=course_id and c.is_published)));
+create policy "Admins insert modules" on public.modules for insert to authenticated with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins update modules" on public.modules for update to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin') with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins delete modules" on public.modules for delete to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Published lessons readable" on public.lessons;
+drop policy if exists "Admins manage lessons" on public.lessons;
+create policy "Lessons read published or admin" on public.lessons for select to anon,authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin' or (is_published and exists(select 1 from public.modules m join public.courses c on c.id=m.course_id where m.id=module_id and m.is_published and c.is_published)));
+create policy "Admins insert lessons" on public.lessons for insert to authenticated with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins update lessons" on public.lessons for update to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin') with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins delete lessons" on public.lessons for delete to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Published quizzes readable" on public.quizzes;
+drop policy if exists "Admins manage quizzes" on public.quizzes;
+create policy "Quizzes read published or admin" on public.quizzes for select to anon,authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin' or (is_published and exists(select 1 from public.lessons l join public.modules m on m.id=l.module_id join public.courses c on c.id=m.course_id where l.id=lesson_id and l.is_published and m.is_published and c.is_published)));
+create policy "Admins insert quizzes" on public.quizzes for insert to authenticated with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins update quizzes" on public.quizzes for update to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin') with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins delete quizzes" on public.quizzes for delete to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Published quiz questions readable" on public.quiz_questions;
+drop policy if exists "Admins manage quiz questions" on public.quiz_questions;
+create policy "Quiz questions read published or admin" on public.quiz_questions for select to anon,authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin' or (is_published and exists(select 1 from public.quizzes q where q.id=quiz_id and q.is_published)));
+create policy "Admins insert quiz questions" on public.quiz_questions for insert to authenticated with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins update quiz questions" on public.quiz_questions for update to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin') with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins delete quiz questions" on public.quiz_questions for delete to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Published glossary readable" on public.glossary_terms;
+drop policy if exists "Admins manage glossary" on public.glossary_terms;
+create policy "Glossary read published or admin" on public.glossary_terms for select to anon,authenticated using(is_published or ((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins insert glossary" on public.glossary_terms for insert to authenticated with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins update glossary" on public.glossary_terms for update to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin') with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins delete glossary" on public.glossary_terms for delete to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Published resources readable" on public.learning_resources;
+drop policy if exists "Admins manage resources" on public.learning_resources;
+create policy "Resources read published or admin" on public.learning_resources for select to anon,authenticated using(is_published or ((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins insert resources" on public.learning_resources for insert to authenticated with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins update resources" on public.learning_resources for update to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin') with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins delete resources" on public.learning_resources for delete to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Users read own lesson progress" on public.lesson_progress;
+drop policy if exists "Admins read lesson progress" on public.lesson_progress;
+create policy "Users or admins read lesson progress" on public.lesson_progress for select to authenticated using((select auth.uid())=user_id or ((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Users read own quiz attempts" on public.quiz_attempts;
+drop policy if exists "Admins read quiz attempts" on public.quiz_attempts;
+create policy "Users or admins read quiz attempts" on public.quiz_attempts for select to authenticated using((select auth.uid())=user_id or ((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Users read own exam attempts" on public.exam_attempts;
+drop policy if exists "Admins read exam attempts" on public.exam_attempts;
+create policy "Users or admins read exam attempts" on public.exam_attempts for select to authenticated using((select auth.uid())=user_id or ((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Users read own certificates" on public.course_certificates;
+drop policy if exists "Admins manage certificates" on public.course_certificates;
+create policy "Users or admins read certificates" on public.course_certificates for select to authenticated using((select auth.uid())=user_id or ((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins insert certificates" on public.course_certificates for insert to authenticated with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins update certificates" on public.course_certificates for update to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin') with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins delete certificates" on public.course_certificates for delete to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Profiles select own" on public.profiles;
+drop policy if exists "Admins read profiles" on public.profiles;
+create policy "Profiles read own or admin" on public.profiles for select to authenticated using((select auth.uid())=id or ((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Progress select own" on public.course_progress;
+drop policy if exists "Admins read course progress" on public.course_progress;
+create policy "Progress read own or admin" on public.course_progress for select to authenticated using((select auth.uid())=user_id or ((select auth.jwt())->'app_metadata'->>'role')='admin');
+drop policy if exists "Users read own practical assessments" on public.practical_assessments;
+drop policy if exists "Admins manage practical assessments" on public.practical_assessments;
+create policy "Users or admins read practical assessments" on public.practical_assessments for select to authenticated using((select auth.uid())=user_id or ((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins insert practical assessments" on public.practical_assessments for insert to authenticated with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins update practical assessments" on public.practical_assessments for update to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin') with check(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create policy "Admins delete practical assessments" on public.practical_assessments for delete to authenticated using(((select auth.jwt())->'app_metadata'->>'role')='admin');
+create index if not exists course_certificates_exam_attempt_idx on public.course_certificates(exam_attempt_id);
+create index if not exists lesson_progress_lesson_idx on public.lesson_progress(lesson_id);
+create index if not exists quiz_attempts_quiz_idx on public.quiz_attempts(quiz_id);
+create index if not exists quiz_attempts_user_idx on public.quiz_attempts(user_id);
+create index if not exists quizzes_lesson_idx on public.quizzes(lesson_id);
+
