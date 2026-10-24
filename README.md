@@ -80,3 +80,9 @@ Then sign out and sign back in so the session receives the updated claim. Keep a
 ### Environment template
 
 `.env.example` documents public configuration names for a future Vite migration. The current static site uses `supabase-config.js`; no real secrets belong in `.env.example`.
+
+### Instructor practical assessment and remaining security setting
+
+The admin CMS includes an instructor checklist and assessment status (pending, passed, or needs review), learner progress review, quiz/question editing with a separately protected answer-key table, resource uploads, and certificate revocation. Admin UI access requires the trusted `app_metadata.role = "admin"` claim described above.
+
+The Supabase security advisor currently reports one remaining configuration warning: **Leaked Password Protection is disabled**. Enable it in the Supabase Dashboard under **Authentication → Password Security** (the exact label may vary) to reject passwords known to have been compromised. This is a project Auth setting that was not available through the connected database tools.
