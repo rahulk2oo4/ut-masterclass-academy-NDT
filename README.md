@@ -11,7 +11,7 @@ A responsive static learning platform for conventional UT, immersion/squirter UT
 
 ## Fresh interface redesign (review branch)
 
-The redesign is being developed on the redesign/fresh-academy-ui branch (https://github.com/rahulk2oo4/ut-masterclass-academy-NDT/tree/redesign/fresh-academy-ui) and proposed in PR #3 (https://github.com/rahulk2oo4/ut-masterclass-academy-NDT/pull/3). It introduces a standalone responsive UI using burnt orange (#C65D24), dark maroon (#4A1020), and white, with method guides, 20 learning modules, original SVG schematics, formula references and calculators, a glossary, curated media links, practice questions, and local progress tracking.
+The redesign is being developed on the redesign/fresh-academy-ui branch (https://github.com/rahulk2oo4/ut-masterclass-academy-NDT/tree/redesign/fresh-academy-ui) and proposed in PR #3 (https://github.com/rahulk2oo4/ut-masterclass-academy-NDT/pull/3). It introduces a standalone responsive UI using burnt orange (#C65D24), dark maroon (#4A1020), and white, with method guides, 20 learning modules, original SVG schematics, 24 formula references across multiple NDT topics and interactive calculators, a glossary, curated media links, practice questions, and local progress tracking.
 
 The previous interface is preserved separately as legacy.html on the redesign branch. The new UI is not deployed to the public Pages URL until the pull request is reviewed and merged. The current CI build/syntax validation passed on the redesign commit; browser-level visual and real Supabase auth testing remain to be completed.
 
