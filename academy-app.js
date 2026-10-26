@@ -111,7 +111,10 @@
   }
   function videoCard(v) {
     var img = v.topic.indexOf("RT") >= 0 ? "photo-1518770660439-4636190af475" : v.topic.indexOf("UT") >= 0 ? "photo-1581092160607-ee22621dd758" : "photo-1581092160562-40aa08e78837";
-    return '<article class="media-card"><div class="media-thumb"><img loading="lazy" src="https://images.unsplash.com/' + img + '?auto=format&fit=crop&w=700&q=75" alt="Engineering and inspection learning visual" onerror="this.style.display=\'none\'"><span class="play-button">' + iconSvg("play") + '</span></div><div class="media-content"><small>' + esc(v.source) + ' · ' + esc(v.topic) + '</small><h3>' + esc(v.title) + '</h3><p>' + esc(v.note) + '</p><a href="' + esc(v.url) + '" target="_blank" rel="noopener noreferrer">Open source resource ↗</a></div></article>';
+    var media = v.embedId
+      ? '<div class="media-thumb has-video"><iframe loading="lazy" src="https://www.youtube-nocookie.com/embed/' + esc(v.embedId) + '" title="' + esc(v.title) + '" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>'
+      : '<div class="media-thumb"><img loading="lazy" src="https://images.unsplash.com/' + img + '?auto=format&fit=crop&w=700&q=75" alt="Engineering and inspection learning visual" onerror="this.style.display=\'none\'"><span class="play-button">' + iconSvg("play") + '</span></div>';
+    return '<article class="media-card">' + media + '<div class="media-content"><small>' + esc(v.source) + ' · ' + esc(v.topic) + '</small><h3>' + esc(v.title) + '</h3><p>' + esc(v.note) + '</p><a href="' + esc(v.url) + '" target="_blank" rel="noopener noreferrer">Open source resource ↗</a></div></article>';
   }
   function renderMethods() {
     root.innerHTML = crumb("NDT Methods") + pageHero("Method directory","Explore NDT methods","Choose a method to understand its physical principle, equipment, workflow, applications, strengths, limitations and common target discontinuities.") +
