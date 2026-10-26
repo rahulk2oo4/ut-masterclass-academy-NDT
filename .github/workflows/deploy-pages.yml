@@ -25,6 +25,10 @@ jobs:
       - name: Validate required files
         run: |
           test -f index.html
+          test -f legacy.html
+          test -f academy.css
+          test -f academy-data.js
+          test -f academy-app.js
           test -f supabase-config.js
           test -f formula-library.js
           test -f academy-sections.js
@@ -39,6 +43,8 @@ jobs:
           node --check formula-library.js
           node --check academy-sections.js
           node --check admin-dashboard.js
+          node --check academy-data.js
+          node --check academy-app.js
           python - <<'PY'
           import re
           from pathlib import Path
@@ -53,7 +59,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site/supabase/migrations
-          cp index.html supabase-config.js formula-library.js academy-sections.js admin-dashboard.js certificate.html verify-certificate.html .nojekyll _site/
+          cp index.html legacy.html academy.css academy-data.js academy-app.js supabase-config.js formula-library.js academy-sections.js admin-dashboard.js certificate.html verify-certificate.html .nojekyll _site/
           cp supabase/schema.sql supabase/seed.sql _site/supabase/
           cp supabase/migrations/*.sql _site/supabase/migrations/
           cp README.md _site/README.md
