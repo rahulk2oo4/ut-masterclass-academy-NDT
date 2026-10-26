@@ -20,9 +20,47 @@
 
   function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
   function loadProgress() { try { return JSON.parse(localStorage.getItem("utma-redesign-progress") || "{}"); } catch (e) { return {}; } }
-  function saveProgress() { localStorage.setItem("utma-redesign-progress", JSON.stringify(progress)); updateProgressBadge(); }
+  function saveProgress() { try { localStorage.setItem("utma-redesign-progress", JSON.stringify(progress)); } catch (e) { console.warn("Local progress could not be saved.", e); } updateProgressBadge(); }
   function isComplete(id) { return !!(progress.completed && progress.completed[id]); }
-  function markComplete(id) { progress.completed = progress.completed || {}; progress.completed[id] = true; saveProgress(); }
+  function markComplete(id) { progress.completed = progress.completed || {}; progress.completed[id] = true; saveProgress(); syncModuleProgress(id); }
+  async function syncModuleProgress(id) {
+    if (!supabaseClient || !currentUser || !id) return;
+    var now = new Date().toISOString();
+    var result = await supabaseClient.from("academy_module_progress").upsert({
+      user_id: currentUser.id, module_id: String(id), completed: true,
+      completed_at: now, updated_at: now
+    }, { onConflict: "user_id,module_id" });
+    if (result.error) console.warn("Cloud module progress could not be saved.", result.error.message);
+  }
+  async function loadCloudProgress() {
+    if (!supabaseClient || !currentUser) return;
+    try {
+      var modulesResult = await supabaseClient.from("academy_module_progress").select("module_id,completed").eq("user_id", currentUser.id);
+      if (modulesResult.error) throw modulesResult.error;
+      var cloudCompleted = {};
+      (modulesResult.data || []).forEach(function (row) { if (row.completed) cloudCompleted[row.module_id] = true; });
+      progress.completed = cloudCompleted;
+      var attemptsResult = await supabaseClient.from("academy_quiz_attempts").select("score_percent,created_at").eq("user_id", currentUser.id).order("created_at", {ascending:false}).limit(100);
+      if (attemptsResult.error) throw attemptsResult.error;
+      var attempts = attemptsResult.data || [];
+      progress.quizBest = attempts.reduce(function (best, row) { return Math.max(best, Number(row.score_percent) || 0); }, 0);
+      progress.quizLast = attempts.length ? (Number(attempts[0].score_percent) || 0) : 0;
+      saveProgress();
+      if (activeView === "progress") renderProgress();
+      else if (activeView === "home") renderHome();
+    } catch (e) {
+      console.warn("Cloud progress could not be loaded.", e.message || e);
+    }
+  }
+  async function recordQuizAttempt(correctAnswers, totalQuestions) {
+    if (!supabaseClient || !currentUser || !totalQuestions) return;
+    var result = await supabaseClient.from("academy_quiz_attempts").insert({
+      user_id: currentUser.id, quiz_type: "practice",
+      correct_answers: correctAnswers, total_questions: totalQuestions
+    });
+    if (result.error) { console.warn("Quiz attempt could not be saved to the cloud.", result.error.message); return; }
+    await loadCloudProgress();
+  }
   function allModulesDone() { return D.modules.filter(function(m){return isComplete(m.id);}).length; }
   function updateProgressBadge() { var el = document.getElementById("progressBadge"); if (el) el.textContent = allModulesDone() + "/" + D.modules.length; }
   function byId(id) { return D.modules.find(function(m){return m.id === id;}) || D.modules[0]; }
@@ -241,7 +279,7 @@
   function renderQuiz() {
     if (quizIndex >= quizOrder.length) {
       var pct=Math.round(quizScore/quizOrder.length*100);
-      progress.quizBest=Math.max(progress.quizBest||0,pct);progress.quizLast=pct;saveProgress();
+      progress.quizBest=Math.max(progress.quizBest||0,pct);progress.quizLast=pct;saveProgress();recordQuizAttempt(quizScore,quizOrder.length);
       root.innerHTML=crumb("Practice quiz") + pageHero("Knowledge check complete","Practice results","Review the score, then retake the quiz or return to the lessons you want to strengthen.") + '<div class="quiz-card"><div class="section-kicker">Your result</div><div class="progress-number">' + pct + '%</div><p style="font-size:13px;line-height:1.8;color:var(--muted)">You answered ' + quizScore + ' of ' + quizOrder.length + ' questions correctly. This practice score is for learning only and is not an official certification exam.</p><div class="quiz-actions"><button class="btn btn-primary" data-action="retake">Retake quiz</button><button class="btn btn-outline" data-go="academy">Review curriculum</button><button class="btn btn-outline" data-go="progress">View progress</button></div></div>';
       return;
     }
@@ -251,7 +289,7 @@
   function answerQuiz() { if(quizAnswered||quizChoice<0)return;var q=D.quiz[quizOrder[quizIndex]];quizAnswered=true;if(quizChoice===q.answer)quizScore++;renderQuiz();}
   function renderProgress() {
     var done=allModulesDone(),pct=Math.round(done/D.modules.length*100),best=progress.quizBest||0,last=progress.quizLast||0;
-    root.innerHTML=crumb("My progress") + pageHero("Learning dashboard","Your learning progress","Progress is saved locally in this browser. If you clear browser data or switch devices, this local record may not be available.") + '<div class="progress-panel"><article class="progress-card"><div class="section-kicker">Curriculum completion</div><div class="progress-number">' + pct + '%</div><div class="progress-track"><span style="width:' + pct + '%"></span></div><p>' + done + ' of ' + D.modules.length + ' modules marked complete.</p><button class="btn btn-primary" data-go="academy">Continue learning</button></article><article class="progress-card"><div class="section-kicker">Practice quiz</div><div class="progress-number">' + best + '%</div><p>Best score: ' + best + '% · Latest score: ' + last + '%</p><button class="btn btn-outline" data-go="quiz">Practise again</button></article></div><section class="section">' + sectionHead("Your modules","Completed and remaining lessons","Open a lesson to review it or mark it complete when you finish studying.","academy","All lessons") + '<div class="module-grid">' + D.modules.map(function(m){return '<article class="module-card"><div class="module-top"><span class="module-number">' + (isComplete(m.id)?'✓':String(D.modules.indexOf(m)+1).padStart(2,"0")) + '</span><span class="pill">' + (isComplete(m.id)?'Completed':esc(m.level)) + '</span></div><h3>' + esc(m.title) + '</h3><p>' + esc(m.summary) + '</p><div class="module-meta"><span>' + esc(m.time) + '</span><button class="arrow-link" data-module="' + esc(m.id) + '">Open →</button></div></article>';}).join("") + '</div>';
+    root.innerHTML=crumb("My progress") + pageHero("Learning dashboard","Your learning progress",currentUser?"Your module completion and practice quiz scores sync to your signed-in account.":"Progress is saved locally in this browser. Sign in to sync module completion and practice quiz scores across devices.") + '<div class="progress-panel"><article class="progress-card"><div class="section-kicker">Curriculum completion</div><div class="progress-number">' + pct + '%</div><div class="progress-track"><span style="width:' + pct + '%"></span></div><p>' + done + ' of ' + D.modules.length + ' modules marked complete.</p><button class="btn btn-primary" data-go="academy">Continue learning</button></article><article class="progress-card"><div class="section-kicker">Practice quiz</div><div class="progress-number">' + best + '%</div><p>Best score: ' + best + '% · Latest score: ' + last + '%</p><button class="btn btn-outline" data-go="quiz">Practise again</button></article></div><section class="section">' + sectionHead("Your modules","Completed and remaining lessons","Open a lesson to review it or mark it complete when you finish studying.","academy","All lessons") + '<div class="module-grid">' + D.modules.map(function(m){return '<article class="module-card"><div class="module-top"><span class="module-number">' + (isComplete(m.id)?'✓':String(D.modules.indexOf(m)+1).padStart(2,"0")) + '</span><span class="pill">' + (isComplete(m.id)?'Completed':esc(m.level)) + '</span></div><h3>' + esc(m.title) + '</h3><p>' + esc(m.summary) + '</p><div class="module-meta"><span>' + esc(m.time) + '</span><button class="arrow-link" data-module="' + esc(m.id) + '">Open →</button></div></article>';}).join("") + '</div>';
   }
   function renderSearchResults(q) {
     q=(q||"").trim().toLowerCase();
@@ -285,6 +323,7 @@
         var name=document.getElementById("authName").value.trim();
         var s=await supabaseClient.auth.signUp({email:email,password:password,options:{data:{full_name:name,learner_type:"Self-paced learner"},emailRedirectTo:window.location.href.split("#")[0]}});
         if(s.error)throw s.error;
+        if(s.data.session){currentUser=s.data.session.user;await loadCloudProgress();}
         status.textContent=s.data.session?"Account created.":"Check your email for the verification link.";
       } else if(authMode==="reset"){
         var r=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.href.split("#")[0]});
@@ -294,9 +333,10 @@
         var l=await supabaseClient.auth.signInWithPassword({email:email,password:password});
         if(l.error)throw l.error;
         currentUser=l.data.user;
+        await loadCloudProgress();
         document.getElementById("authModal").classList.remove("open");
         document.getElementById("signinBtn").textContent="Signed in";
-        status.textContent="Signed in. This redesign currently stores lesson completion locally; cloud progress mapping is pending schema validation.";
+        status.textContent="Signed in. Your module completion and practice quiz scores now sync to your account.";
       }
     } catch(e){status.textContent=e.message||"Authentication could not be completed.";}
   }
@@ -327,7 +367,15 @@
     if(window.supabase&&window.supabase.createClient&&cfg&&cfg.url&&cfg.anonKey){
       try {
         supabaseClient=window.supabase.createClient(cfg.url,cfg.anonKey);
-        supabaseClient.auth.getSession().then(function(r){if(r.data&&r.data.session){currentUser=r.data.session.user;document.getElementById("signinBtn").textContent="Signed in";}});
+        supabaseClient.auth.onAuthStateChange(function(event, session){
+          currentUser=session?session.user:null;
+          var button=document.getElementById("signinBtn");
+          if(button) button.textContent=currentUser?"Signed in":"Sign in";
+          if(currentUser) window.setTimeout(function(){loadCloudProgress();},0);
+        });
+        supabaseClient.auth.getSession().then(function(r){
+          if(r.data&&r.data.session){currentUser=r.data.session.user;document.getElementById("signinBtn").textContent="Signed in";loadCloudProgress();}
+        }).catch(function(e){console.warn("Supabase session could not be restored.",e);});
       } catch(e){console.warn("Supabase browser client unavailable",e);}
     }
   }
