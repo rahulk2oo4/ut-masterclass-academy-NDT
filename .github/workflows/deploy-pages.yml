@@ -1,4 +1,4 @@
-name: Deploy UT Masterclass Academy to GitHub Pages
+name: Deploy NDT Masterclass to GitHub Pages
 
 on:
   push:
@@ -55,7 +55,7 @@ jobs:
           Path("/tmp/utma-inline.js").write_text("\n".join(scripts), encoding="utf-8")
           PY
           node --check /tmp/utma-inline.js
-          grep -q "UT Masterclass Academy" index.html
+          grep -qi "NDT MASTERCLASS" index.html
       - name: Prepare static site
         run: |
           mkdir -p _site/supabase/migrations
