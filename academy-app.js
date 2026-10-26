@@ -355,7 +355,7 @@
     document.getElementById("searchToggle").addEventListener("click",function(){searchOpen=!searchOpen;var box=document.getElementById("globalSearchBox");box.style.display=searchOpen?"flex":"none";if(searchOpen)document.getElementById("globalSearchInput").focus();});
     document.getElementById("globalSearchInput").addEventListener("keydown",function(e){if(e.key==="Enter"){searchValue=this.value;go("search");document.getElementById("globalSearchBox").style.display="none";}});
     document.getElementById("globalSearchGo").addEventListener("click",function(){searchValue=document.getElementById("globalSearchInput").value;go("search");document.getElementById("globalSearchBox").style.display="none";});
-    document.getElementById("signinBtn").addEventListener("click",function(){if(currentUser&&supabaseClient){supabaseClient.auth.signOut().then(function(){currentUser=null;document.getElementById("signinBtn").textContent="Sign in";});}else showAuth();});
+    document.getElementById("signinBtn").addEventListener("click",function(){if(currentUser&&supabaseClient){supabaseClient.auth.signOut().then(function(result){if(result.error){console.warn("Sign out failed.",result.error);return;}currentUser=null;progress={};saveProgress();document.getElementById("signinBtn").textContent="Sign in";renderHome();});}else showAuth();});
     document.getElementById("authClose").addEventListener("click",function(){document.getElementById("authModal").classList.remove("open");});
     document.getElementById("authModal").addEventListener("click",function(e){if(e.target===this)this.classList.remove("open");});
     document.getElementById("authSubmit").addEventListener("click",submitAuth);
