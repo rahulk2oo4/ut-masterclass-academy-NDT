@@ -13,9 +13,9 @@ A responsive static learning platform for conventional UT, immersion/squirter UT
 
 The redesign is being developed on the redesign/fresh-academy-ui branch (https://github.com/rahulk2oo4/ut-masterclass-academy-NDT/tree/redesign/fresh-academy-ui) and proposed in PR #3 (https://github.com/rahulk2oo4/ut-masterclass-academy-NDT/pull/3). It introduces a standalone responsive UI using burnt orange (#C65D24), dark maroon (#4A1020), and white, with method guides, 20 learning modules, original SVG schematics, 24 formula references across multiple NDT topics and interactive calculators, a glossary, curated media links, practice questions, and local progress tracking.
 
-The previous interface is preserved separately as legacy.html on the redesign branch. The new UI is not deployed to the public Pages URL until the pull request is reviewed and merged. The current CI build/syntax validation passed on the redesign commit; browser-level visual and real Supabase auth testing remain to be completed.
+The previous interface is preserved separately as legacy.html on the redesign branch. The new UI is not deployed to the public Pages URL until the pull request is reviewed and merged. The redesign CI build/syntax validation passed on merge. Cloud progress synchronization has been implemented in the follow-up branch; verify real email authentication and learner-to-learner isolation before production release.
 
-The redesign deliberately does not write new module IDs into the existing course_progress table until its current schema and compatibility with the redesigned curriculum are validated. External media is linked to its publisher; link availability, licensing and technical suitability must be checked before formal release. The NDE Ed About URL rejected direct access during implementation, so not every source page or asset has been verified.
+The redesign uses separate `academy_module_progress` and `academy_quiz_attempts` tables for cloud-synced module completion and practice quiz scores. Both tables have Row Level Security policies scoped to the authenticated learner. The existing legacy progress tables remain unchanged. External media is linked to its publisher; link availability, licensing and technical suitability must be checked before formal release. The NDE Ed About URL rejected direct access during implementation, so not every source page or asset has been verified.
 
 ## Deploy
 1. Repository **Settings → Pages** → choose **GitHub Actions** as the source.
@@ -26,7 +26,7 @@ The redesign deliberately does not write new module IDs into the existing course
 The frontend configuration is already connected to the existing Supabase project using its public publishable key. The database migration `ut_masterclass_rls_alignment` has been applied, and the `profiles` and `course_progress` tables have RLS enabled with owner-only policies.
 1. In Supabase **Authentication → URL Configuration**, set the Site URL to the published Pages URL and allow `https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/`.
 2. Enable email/password sign-in and email confirmation; test signup, verification, password reset and sign-in.
-3. Test progress sync after logging in and check data isolation with a second account.
+3. After the cloud-progress update is merged, test sign-up, email verification, sign-in, module completion, quiz attempts and data isolation with a second account.
 
 ## Security
 - The browser uses a Supabase publishable key; this is not a service-role secret.
