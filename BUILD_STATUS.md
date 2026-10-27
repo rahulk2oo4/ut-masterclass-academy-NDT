@@ -10,7 +10,7 @@
 - Lesson completion can be saved locally and synced to a signed-in learner account.
 - Method lesson progress uses `public.academy_method_lesson_progress`, with row-level security enabled and four owner-scoped policies.
 - Practice Centre retains method/topic/subtopic/difficulty/type/count filters and nine generated practice formats, including multiple-select, matching, fill-in and short-response self-checks.
-- Server-side final-exam Edge Function deployed at version 7. It builds a dedicated 100-item bank for each supported method; starts timed attempts; supports answer autosave/resume; validates attempt ownership and question IDs; blocks duplicate submissions; scores on the server; applies 50/100; and returns topic performance and answer review after submission.
+- Server-side final-exam Edge Function deployed at version 8. It builds a dedicated 100-item bank for each supported method; starts timed attempts; supports answer autosave/resume; validates attempt ownership and question IDs; blocks duplicate submissions; scores on the server; applies 50/100; and returns topic performance and answer review after submission.
 - Public certificate verification Edge Function deployed at version 2.
 - Authenticated private certificate-PDF Edge Function deployed at version 2. PDF records show course-completion date, final-exam date, score, issue date, reference ID and the requested educational disclaimer.
 - Course dashboard, Final Examinations, My Learning, Certificates, attempt history, review, retake and verification navigation wired into the root app.
