@@ -462,6 +462,16 @@ document.addEventListener("click",function(ev){
  var b=ev.target.closest("button,a");if(!b)return;
  var nav=b.getAttribute("data-method-exam-nav");
  if(nav){ev.preventDefault();ev.stopImmediatePropagation();handleNav(nav);return;}
+ // Let the original academy router handle the primary tab buttons. The exam/course
+ // router only marks its own state as main here, so asynchronous course refreshes
+ // cannot redraw an old page over the selected main tab.
+ if(b.closest("#mainNav")&&b.hasAttribute("data-view")){
+  removeTimer();
+  if(window.NDT_MASTERCLASS_PRACTICE&&window.NDT_MASTERCLASS_PRACTICE.clear)window.NDT_MASTERCLASS_PRACTICE.clear();
+  ui.page="main";
+  window.NDT_MASTERCLASS_CUSTOM_VIEW=false;
+  return;
+ }
  if(b.hasAttribute("data-method-exam-action")){action(ev,b);return;}
  if(b.hasAttribute("data-ndt-practice")&&root.querySelector(".lesson-content")){
   ev.preventDefault();ev.stopImmediatePropagation();
