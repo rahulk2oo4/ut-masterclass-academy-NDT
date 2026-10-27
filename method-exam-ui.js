@@ -197,9 +197,10 @@ function reviewList(items){
  }).join("")+'</div>';
 }
 function render(){
- if(ui.page==="home"){window.NDT_MASTERCLASS_CUSTOM_VIEW=false;return;}
+ if(ui.page==="home"||ui.page==="main"){window.NDT_MASTERCLASS_CUSTOM_VIEW=false;return;}
  if(ui.page==="lesson")return;
  window.NDT_MASTERCLASS_CUSTOM_VIEW=true;
+ setTopNavActive(ui.page==="course"||ui.page==="lesson"?"methods":(["exam-active","exam-result","history"].indexOf(ui.page)>=0?"exams":ui.page));
  var html="";
  if(ui.page==="exams")html=renderExams();
  else if(ui.page==="course")html=renderCourse();
@@ -379,12 +380,13 @@ function markLesson(){
 }
 function openMain(view,arg){
  removeTimer();
+ try{history.replaceState(null,"",location.pathname);}catch(e){}
  if(window.NDT_MASTERCLASS_PRACTICE&&window.NDT_MASTERCLASS_PRACTICE.clear)window.NDT_MASTERCLASS_PRACTICE.clear();
  ui.page="main";window.NDT_MASTERCLASS_CUSTOM_VIEW=false;
  api.openView(view,arg||null,true);
  setTopNavActive(view==="method"?"methods":view==="quiz"?"quiz":view);
 }
-function setTopNavActive(key){document.querySelectorAll("#mainNav button").forEach(function(b){var active=b.getAttribute("data-method-exam-nav")===key||b.getAttribute("data-view")===key;b.classList.toggle("active",active);});}
+function setTopNavActive(key){document.querySelectorAll("#mainNav button,#mainNav a").forEach(function(b){var active=b.getAttribute("data-method-exam-nav")===key||b.getAttribute("data-view")===key;b.classList.toggle("active",active);});}
 function handleNav(name){
  // Render the selected page immediately. Do not make navigation wait for Supabase.
  setTopNavActive(name);
