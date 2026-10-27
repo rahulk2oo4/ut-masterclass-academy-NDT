@@ -4,6 +4,11 @@
 var api=window.NDT_MASTERCLASS;
 if(!api)return;
 var root=document.getElementById("app");
+var routeParams=new URLSearchParams(window.location.search);
+var requestedRoute=routeParams.get("academy")||"";
+var initialRoute=["exams","certificates","learning","course","lesson"].indexOf(requestedRoute)>=0?requestedRoute:"home";
+var initialMethod=routeParams.get("method")||"ut";
+var initialLesson=routeParams.get("lesson")||null;
 var config=window.UT_SUPABASE_CONFIG||{};
 var METHOD_TOPICS=[
 ["objective","Fundamentals","Objective and inspection scope"],["principle","Fundamentals","Physical principle"],["terminology","Fundamentals","Terminology and relevant physics"],["materials","Fundamentals","Material compatibility"],["targets","Fundamentals","Target discontinuities"],
@@ -13,7 +18,7 @@ var METHOD_TOPICS=[
 ["repeatability","Applications & Reporting","Data quality and repeatability"],["applications","Applications & Reporting","Industry applications"],["case","Applications & Reporting","Applied case study"],["reporting","Applications & Reporting","Reporting and acceptance"],["competence","Applications & Reporting","Personnel competence and career relevance"]
 ];
 var ui={
- page:"exams",stack:[],courseMethod:"ut",lessonId:null,
+ page:initialRoute,stack:[],courseMethod:initialMethod,lessonId:initialLesson,
  progress:readLocalProgress(),cloudProgress:{},cloudLoaded:false,user:null,session:null,
  error:"",notice:"",exam:null,result:null,history:[],certificateList:[],historyMethod:"ut",timer:null,submitting:false
 };
@@ -179,6 +184,7 @@ function reviewList(items){
  }).join("")+'</div>';
 }
 function render(){
+ if(ui.page==="home"){window.NDT_MASTERCLASS_CUSTOM_VIEW=false;return;}
  if(ui.page==="lesson")return;
  window.NDT_MASTERCLASS_CUSTOM_VIEW=true;
  var html="";
@@ -426,7 +432,7 @@ function action(ev,b){
 document.addEventListener("click",function(ev){
  var b=ev.target.closest("button,a");if(!b)return;
  var nav=b.getAttribute("data-method-exam-nav");
- if(nav){ev.preventDefault();ev.stopImmediatePropagation();handleNav(nav);return;}
+ if(nav){handleNav(nav);ev.stopImmediatePropagation();return;}
  if(b.hasAttribute("data-method-exam-action")){action(ev,b);return;}
  if(b.hasAttribute("data-ndt-practice")&&root.querySelector(".lesson-content")){
   ev.preventDefault();ev.stopImmediatePropagation();
@@ -460,15 +466,22 @@ if(window.NDT_MASTERCLASS_PRACTICE){
  window.NDT_MASTERCLASS_PRACTICE.openPractice = window.NDT_MASTERCLASS_PRACTICE.openPractice || null;
 }
 document.addEventListener("DOMContentLoaded",function(){
- syncSession().then(function(){return loadCloudProgress();}).then(function(){if(ui.page==="exams")render();});
+ syncSession().then(function(){
+  if(ui.page==="certificates")return loadCertificates();
+  if(ui.page==="exams"||ui.page==="course"||ui.page==="learning")return loadCloudProgress();
+ }).then(function(){if(ui.page!=="home"&&ui.page!=="lesson")render();}).catch(function(){if(ui.page!=="home"&&ui.page!=="lesson")render();});
 });
 if(getClient()&&getClient().auth&&getClient().auth.onAuthStateChange){
  getClient().auth.onAuthStateChange(function(){syncSession().then(loadCloudProgress).then(function(){if(ui.page!=="exam-active")render();});});
 }
 window.NDT_MASTERCLASS_EXAMS={
- open:function(page,methodId){if(page==="certificates")handleNav("certificates");else if(page==="learning")handleNav("learning");else handleNav("exams");},
+ open:function(page,methodId,lessonId){
+  if(page==="course"){setPage("course",{method:methodId||ui.courseMethod,push:true});loadCloudProgress().then(function(){if(ui.page==="course")render();});return;}
+  if(page==="lesson"){setPage("lesson",{method:methodId||ui.courseMethod,lesson:lessonId,push:true});return;}
+  if(page==="certificates")handleNav("certificates");else if(page==="learning")handleNav("learning");else handleNav("exams");
+ },
  getState:function(){return {page:ui.page,method:ui.courseMethod,user:!!ui.user};},
  refresh:function(){return loadCloudProgress().then(render);}
 };
-setTimeout(function(){if(ui.page==="exams")render();},0);
+setTimeout(function(){if(ui.page==="lesson")renderLesson(ui.courseMethod,ui.lessonId);else if(ui.page!=="home")render();},0);
 })();
