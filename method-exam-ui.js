@@ -221,7 +221,6 @@ function renderLesson(methodId,lessonId){
  setTimeout(decorateTopic,0);
 }
 function decorateTopic(){
- if(ui.page!=="lesson")return;
  var h=root.querySelector(".lesson-content h1");
  var content=root.querySelector(".lesson-content");
  if(!h||!content)return;
@@ -397,6 +396,20 @@ document.addEventListener("click",function(ev){
  var nav=b.getAttribute("data-method-exam-nav");
  if(nav){ev.preventDefault();ev.stopImmediatePropagation();handleNav(nav);return;}
  if(b.hasAttribute("data-method-exam-action")){action(ev,b);return;}
+ if(b.hasAttribute("data-ndt-practice")&&root.querySelector(".lesson-content")){
+  ev.preventDefault();ev.stopImmediatePropagation();
+  var practiceArgs=(b.getAttribute("data-ndt-practice")||"all|all|all").split("|");
+  if(window.NDT_MASTERCLASS_PRACTICE&&window.NDT_MASTERCLASS_PRACTICE.openPractice)window.NDT_MASTERCLASS_PRACTICE.openPractice(practiceArgs[0],practiceArgs[1],practiceArgs[2]);
+  return;
+ }
+ if(b.hasAttribute("data-ndt-action")&&root.querySelector(".lesson-content")){
+  ev.preventDefault();ev.stopImmediatePropagation();
+  var legacyAction=b.getAttribute("data-ndt-action");
+  if(legacyAction==="back"){setPage("course",{method:ui.courseMethod,push:false});return;}
+  if(legacyAction==="home"){openMain("home");return;}
+  if(legacyAction==="method"){openMain("method",b.getAttribute("data-mid"));return;}
+  return;
+ }
  if(b.hasAttribute("data-view")){
   if(window.NDT_MASTERCLASS_CUSTOM_VIEW||ui.page==="lesson"){
    ev.preventDefault();ev.stopImmediatePropagation();
