@@ -461,7 +461,7 @@ document.addEventListener("input",function(ev){
 document.addEventListener("click",function(ev){
  var b=ev.target.closest("button,a");if(!b)return;
  var nav=b.getAttribute("data-method-exam-nav");
- if(nav){handleNav(nav);ev.stopImmediatePropagation();return;}
+ if(nav){ev.preventDefault();ev.stopImmediatePropagation();handleNav(nav);return;}
  if(b.hasAttribute("data-method-exam-action")){action(ev,b);return;}
  if(b.hasAttribute("data-ndt-practice")&&root.querySelector(".lesson-content")){
   ev.preventDefault();ev.stopImmediatePropagation();
@@ -478,10 +478,10 @@ document.addEventListener("click",function(ev){
   return;
  }
  if(b.hasAttribute("data-view")){
-  if(window.NDT_MASTERCLASS_CUSTOM_VIEW||ui.page==="lesson"){
-   ev.preventDefault();ev.stopImmediatePropagation();
-   var v=b.getAttribute("data-view");openMain(v==="quiz"?"quiz":v);return;
-  }
+  ev.preventDefault();ev.stopImmediatePropagation();
+  var v=b.getAttribute("data-view");
+  openMain(v==="quiz"?"quiz":v);
+  return;
  }
 },true);
 window.addEventListener("utma:method-course-progress-refresh",function(){loadCloudProgress().then(render);});
