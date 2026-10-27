@@ -286,7 +286,7 @@ async function startExam(methodId){
   await loadCloudProgress();
   if(!ui.user){ui.error="Sign in first. Exam eligibility and scores are stored against your learner account.";render();return;}
   var r=await functionRequest("final-exam",{action:"start",course_key:ui.courseMethod,duration_minutes:minutes});
-  ui.exam={methodId:ui.courseMethod,attemptId:r.attempt_id,startedAt:r.started_at,expiresAt:r.expires_at,questions:r.questions||[],answers:r.answers&&typeof r.answers==="object"?r.answers:{},flags:new Set(),index:0,passMark:r.pass_mark||50,attemptsUsed:r.attempts_used||1,saveState:"Answers will be saved to your account as you work."};
+  var savedAnswers=r.answers&&typeof r.answers==="object"?r.answers:{};var resumeAt=(r.questions||[]).findIndex(function(q){return !Object.prototype.hasOwnProperty.call(savedAnswers,q.id);});ui.exam={methodId:ui.courseMethod,attemptId:r.attempt_id,startedAt:r.started_at,expiresAt:r.expires_at,questions:r.questions||[],answers:savedAnswers,flags:new Set(),index:resumeAt>=0?resumeAt:0,passMark:r.pass_mark||50,attemptsUsed:r.attempts_used||1,saveState:"Answers will be saved to your account as you work."};
   if(!ui.exam.questions||ui.exam.questions.length!==100)throw new Error("The server did not return exactly 100 questions. The attempt was not opened in the interface.");
   ui.page="exam-active";window.NDT_MASTERCLASS_CUSTOM_VIEW=true;render();startTimer();
  }catch(e){ui.error=e.message||"Could not start the examination.";ui.page="course";window.NDT_MASTERCLASS_CUSTOM_VIEW=true;render();}
@@ -358,11 +358,14 @@ function openMain(view,arg){
  if(window.NDT_MASTERCLASS_PRACTICE&&window.NDT_MASTERCLASS_PRACTICE.clear)window.NDT_MASTERCLASS_PRACTICE.clear();
  ui.page="main";window.NDT_MASTERCLASS_CUSTOM_VIEW=false;
  api.openView(view,arg||null,true);
+ setTopNavActive(view==="method"?"methods":view==="quiz"?"quiz":view);
 }
+function setTopNavActive(key){document.querySelectorAll("#mainNav button").forEach(function(b){var active=b.getAttribute("data-method-exam-nav")===key||b.getAttribute("data-view")===key;b.classList.toggle("active",active);});}
 async function handleNav(name){
  if(name==="exams"){await loadCloudProgress();setPage("exams",{push:true});}
  else if(name==="learning"){await loadCloudProgress();setPage("learning",{push:true});}
  else if(name==="certificates"){await loadCertificates();setPage("certificates",{push:true});}
+ setTopNavActive(name);
 }
 function action(ev,b){
  var a=b.getAttribute("data-method-exam-action");
