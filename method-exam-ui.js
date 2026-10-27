@@ -373,6 +373,7 @@ function action(ev,b){
  if(a==="open-course"){setPage("course",{method:mid,push:true});return true;}
  if(a==="open-lesson"){ui.courseMethod=mid;ui.lessonId=b.getAttribute("data-lesson");setPage("lesson",{method:mid,lesson:ui.lessonId,push:false});return true;}
  if(a==="back-course"){ui.courseMethod=mid;setPage("course",{method:mid,push:false});return true;}
+ if(a==="open-formulas"){openMain("formulas");return true;}
  if(a==="mark-complete"){markLesson();return true;}
  if(a==="start-exam"){startExam(mid);return true;}
  if(a==="previous"){moveQuestion(ui.exam?ui.exam.index-1:0);return true;}
