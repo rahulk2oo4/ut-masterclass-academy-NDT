@@ -17,6 +17,7 @@ var ui={
  progress:readLocalProgress(),cloudProgress:{},cloudLoaded:false,user:null,session:null,
  error:"",notice:"",exam:null,result:null,history:[],certificateList:[],historyMethod:"ut",timer:null,submitting:false
 };
+var answerSaveTimer=null;
 function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function methods(){return api.methods||[];}
 function getMethod(id){return methods().find(function(m){return m.id===id;})||methods()[0];}
@@ -151,7 +152,7 @@ function renderExamActive(){
   var picked=ex.answers[q.id]===i;
   return '<button type="button" class="exam-answer'+(picked?' selected':'')+'" data-method-exam-action="choose-answer" data-option="'+i+'"><b>'+String.fromCharCode(65+i)+'</b><span>'+esc(opt)+'</span></button>';
  }).join("");
- return crumbs(getMethod(ex.methodId).name+" examination")+'<div class="exam-live-header"><div><span class="tag">Question '+(ex.index+1)+' of 100</span><h1>'+esc(getMethod(ex.methodId).name)+' Final Examination</h1><p class="small">Answers are saved in this attempt in your browser until submission. The server scores the final result.</p></div><div class="exam-clock"><span>Time remaining</span><strong id="methodExamTimer">--:--</strong></div></div><div class="exam-live-stats"><span>'+answered+'/100 answered</span><span>'+flagged+' flagged</span><span>Pass mark: 50/100</span></div><div class="exam-live-layout"><section class="card exam-question-card"><div class="exam-question-meta"><span class="tag">'+esc(q.group)+'</span><span class="tag">'+esc(q.difficulty)+'</span><span class="tag">'+esc(q.kind)+'</span></div><h2>'+esc(q.question)+'</h2><div class="exam-answer-list">'+options+'</div><div class="hero-actions exam-move-actions"><button class="btn btn-outline" data-method-exam-action="previous" '+(ex.index===0?'disabled':'')+'>← Previous</button><button class="btn btn-outline" data-method-exam-action="flag">'+(ex.flags.has(q.id)?'Remove flag':'Flag question')+'</button><button class="btn btn-primary" data-method-exam-action="next" '+(ex.index===n-1?'disabled':'')+'>Next →</button></div></section><aside class="card exam-palette-card"><h3>Question palette</h3><p class="small">Green: answered · Orange border: flagged · Solid outline: current</p><div class="exam-question-palette">'+palette+'</div><div class="exam-palette-legend"><span><i class="answered"></i> Answered</span><span><i class="flagged"></i> Flagged</span><span><i class="current"></i> Current</span></div><button class="btn btn-primary" style="width:100%;margin-top:17px" data-method-exam-action="submit-exam">Submit examination</button><p class="small">Submitting ends this attempt. Unanswered questions count as incorrect. The answer key appears only after submission.</p></aside></div>';
+ return crumbs(getMethod(ex.methodId).name+" examination")+'<div class="exam-live-header"><div><span class="tag">Question '+(ex.index+1)+' of 100</span><h1>'+esc(getMethod(ex.methodId).name)+' Final Examination</h1><p class="small">Answers are saved in this attempt in your browser until submission. The server scores the final result.</p></div><div class="exam-clock"><span>Time remaining</span><strong id="methodExamTimer">--:--</strong></div></div><div class="exam-live-stats"><span>'+answered+'/100 answered</span><span>'+flagged+' flagged</span><span>Pass mark: 50/100</span></div><p class="small exam-autosave-status">'+esc(ex.saveState||"Answers are saved online as you work.")+'</p>'+(ui.submitting?'<div class="notice">Submitting attempt securely and calculating the result…</div>':"")+'<div class="exam-live-layout"><section class="card exam-question-card"><div class="exam-question-meta"><span class="tag">'+esc(q.group)+'</span><span class="tag">'+esc(q.difficulty)+'</span><span class="tag">'+esc(q.kind)+'</span></div><h2>'+esc(q.question)+'</h2><div class="exam-answer-list">'+options+'</div><div class="hero-actions exam-move-actions"><button class="btn btn-outline" data-method-exam-action="previous" '+(ex.index===0?'disabled':'')+'>← Previous</button><button class="btn btn-outline" data-method-exam-action="flag">'+(ex.flags.has(q.id)?'Remove flag':'Flag question')+'</button><button class="btn btn-primary" data-method-exam-action="next" '+(ex.index===n-1?'disabled':'')+'>Next →</button></div></section><aside class="card exam-palette-card"><h3>Question palette</h3><p class="small">Green: answered · Orange border: flagged · Solid outline: current</p><div class="exam-question-palette">'+palette+'</div><div class="exam-palette-legend"><span><i class="answered"></i> Answered</span><span><i class="flagged"></i> Flagged</span><span><i class="current"></i> Current</span></div><button class="btn btn-primary" style="width:100%;margin-top:17px" data-method-exam-action="submit-exam">Submit examination</button><p class="small">Submitting ends this attempt. Unanswered questions count as incorrect. The answer key appears only after submission.</p></aside></div>';
 }
 function renderResult(){
  var r=ui.result;if(!r)return renderCourse();
@@ -265,6 +266,18 @@ async function functionRequest(name,body){
  if(!res.ok)throw new Error(data.error||"The service returned HTTP "+res.status+".");
  return data;
 }
+async function saveExamProgress(){
+ if(!ui.exam)return;
+ if(answerSaveTimer)clearTimeout(answerSaveTimer);
+ ui.exam.saveState="Waiting to save…";
+ var attempt=ui.exam;
+ answerSaveTimer=setTimeout(async function(){
+  if(!ui.exam||ui.exam.attemptId!==attempt.attemptId)return;
+  try{await functionRequest("final-exam",{action:"save-progress",course_key:attempt.methodId,attempt_id:attempt.attemptId,answers:attempt.answers});if(ui.exam&&ui.exam.attemptId===attempt.attemptId)ui.exam.saveState="Saved to your account";}
+  catch(e){if(ui.exam&&ui.exam.attemptId===attempt.attemptId)ui.exam.saveState="Online save failed; answers remain in this tab. "+(e.message||"");}
+  var status=root.querySelector(".exam-autosave-status");if(status&&ui.exam)status.textContent=ui.exam.saveState||"";
+ },450);
+}
 async function startExam(methodId){
  ui.error="";ui.notice="";ui.courseMethod=methodId||ui.courseMethod;
  var duration=document.getElementById("methodExamDuration");
@@ -273,7 +286,7 @@ async function startExam(methodId){
   await loadCloudProgress();
   if(!ui.user){ui.error="Sign in first. Exam eligibility and scores are stored against your learner account.";render();return;}
   var r=await functionRequest("final-exam",{action:"start",course_key:ui.courseMethod,duration_minutes:minutes});
-  ui.exam={methodId:ui.courseMethod,attemptId:r.attempt_id,startedAt:r.started_at,expiresAt:r.expires_at,questions:r.questions||[],answers:{},flags:new Set(),index:0,passMark:r.pass_mark||50,attemptsUsed:r.attempts_used||1};
+  ui.exam={methodId:ui.courseMethod,attemptId:r.attempt_id,startedAt:r.started_at,expiresAt:r.expires_at,questions:r.questions||[],answers:r.answers&&typeof r.answers==="object"?r.answers:{},flags:new Set(),index:0,passMark:r.pass_mark||50,attemptsUsed:r.attempts_used||1,saveState:"Answers will be saved to your account as you work."};
   if(!ui.exam.questions||ui.exam.questions.length!==100)throw new Error("The server did not return exactly 100 questions. The attempt was not opened in the interface.");
   ui.page="exam-active";window.NDT_MASTERCLASS_CUSTOM_VIEW=true;render();startTimer();
  }catch(e){ui.error=e.message||"Could not start the examination.";ui.page="course";window.NDT_MASTERCLASS_CUSTOM_VIEW=true;render();}
@@ -281,6 +294,7 @@ async function startExam(methodId){
 function moveQuestion(n){if(!ui.exam)return;ui.exam.index=Math.max(0,Math.min(99,n));render();}
 async function submitExam(auto){
  if(!ui.exam||ui.submitting)return;
+ if(answerSaveTimer){clearTimeout(answerSaveTimer);answerSaveTimer=null;}
  var missing=ui.exam.questions.length-Object.keys(ui.exam.answers).length;
  if(!auto&&!window.confirm("Submit this 100-question examination now? "+missing+" question(s) are unanswered. Unanswered questions count as incorrect, and the answer key will be shown after submission."))return;
  ui.submitting=true;ui.error="";render();
@@ -290,7 +304,7 @@ async function submitExam(auto){
   ui.result=r;ui.exam=null;ui.page="exam-result";ui.submitting=false;removeTimer();window.NDT_MASTERCLASS_CUSTOM_VIEW=true;render();
  }catch(e){
   ui.submitting=false;ui.error=(auto?"Time expired, but the result could not be submitted: ":"Could not submit the examination: ")+(e.message||"Please retry.");
-  render();if(ui.exam)startTimer();
+  render();if(ui.exam&&!auto)startTimer();
  }
 }
 async function loadHistory(methodId){
@@ -366,7 +380,7 @@ function action(ev,b){
  if(a==="next"){moveQuestion(ui.exam?ui.exam.index+1:0);return true;}
  if(a==="goto-question"){moveQuestion(Number(b.getAttribute("data-index")));return true;}
  if(a==="flag"){if(ui.exam){var q=ui.exam.questions[ui.exam.index];if(ui.exam.flags.has(q.id))ui.exam.flags.delete(q.id);else ui.exam.flags.add(q.id);render();}return true;}
- if(a==="choose-answer"){if(ui.exam){var q=ui.exam.questions[ui.exam.index];ui.exam.answers[q.id]=Number(b.getAttribute("data-option"));render();}return true;}
+ if(a==="choose-answer"){if(ui.exam){var q=ui.exam.questions[ui.exam.index];ui.exam.answers[q.id]=Number(b.getAttribute("data-option"));render();saveExamProgress();}return true;}
  if(a==="submit-exam"){submitExam(false);return true;}
  if(a==="history"){loadHistory(mid);return true;}
  if(a==="review-history"){reviewHistory(b.getAttribute("data-attempt"));return true;}
