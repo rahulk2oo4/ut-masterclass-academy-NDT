@@ -462,6 +462,14 @@ document.addEventListener("click",function(ev){
  var b=ev.target.closest("button,a");if(!b)return;
  var nav=b.getAttribute("data-method-exam-nav");
  if(nav){ev.preventDefault();ev.stopImmediatePropagation();handleNav(nav);return;}
+ // Open structured courses inside the existing app. Without preventing the anchor's
+ // default navigation, this click renders the course and then reloads the page,
+ // which can reset the SPA back to Home or show stale navigation state.
+ if(b.hasAttribute("data-method-exam-open-course")&&window.NDT_MASTERCLASS_EXAMS&&typeof window.NDT_MASTERCLASS_EXAMS.open==="function"){
+  ev.preventDefault();ev.stopImmediatePropagation();
+  window.NDT_MASTERCLASS_EXAMS.open("course",b.getAttribute("data-method-exam-open-course"));
+  return;
+ }
  // Let the original academy router handle the primary tab buttons. The exam/course
  // router only marks its own state as main here, so asynchronous course refreshes
  // cannot redraw an old page over the selected main tab.
