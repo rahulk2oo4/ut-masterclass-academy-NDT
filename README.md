@@ -1,97 +1,59 @@
-# UT Masterclass Academy
+# NDT Masterclass
 
-**Tagline:** Ultrasonic Testing · Learn. Practise. Master.  
-**Theme:** burnt orange, dark maroon, white.
+**Tagline:** NDT theory — Learn. Practise. Master.  
+**Theme:** burnt orange `#C65D24`, dark maroon `#4A1020`, deep maroon `#2D0A14`, white and warm white.
 
-Repository: https://github.com/rahulk2oo4/ut-masterclass-academy-NDT  
-Expected GitHub Pages URL: https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/
+- **Live website:** https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/
+- **GitHub repository:** https://github.com/rahulk2oo4/ut-masterclass-academy-NDT
+- **Supabase project:** `mwpinxnqrzomsonspyxk`
 
-A responsive static learning platform for conventional UT, immersion/squirter UT, PAUT, TOFD, and inspection practice. GitHub Pages hosts the static website; Supabase provides email authentication and cloud learner-progress storage.
+## Current website capability
 
+The deployed root app is an existing static HTML/CSS/JavaScript application. The current course and exam extension preserves the Formula Library and existing method catalogue rather than replacing the main application.
 
-## Fresh interface redesign (review branch)
+- **24 NDT methods:** VT, PT, MT, RT, UT, PAUT, TOFD, ET, IRT, LT, AE, guided wave, MFL, shearography, GPR, neutron radiography, DR, LUT, CT, DIC, microwave, terahertz, robotic/automated NDT, and AI-assisted interpretation.
+- **Method lesson pages:** 25 topic pages per method, rendered with objectives, principles, equipment, workflow, limitations, interpretation, examples, applicable formula references, safety, terminology and summary sections.
+- **Learning progress:** local browser progress, optional explicit sync to a learner account, and per-method Supabase lesson records protected by row-level security.
+- **Practice Centre:** configurable filters for method, topic, subtopic, difficulty, type and question count. Its current question bank is generated from the method/topic metadata. Written-response checking is approximate.
+- **Final exams:** a dedicated 100-question server-generated bank per method; 30/60/90/120-minute options; question navigation, flagging, saved answers/resume, server-side score calculation, 50/100 educational pass mark, history, review and retakes.
+- **Educational completion records:** course-specific issue after all required lesson markers are saved to the account and a passing exam is submitted. A server-side Edge Function creates the certificate record. The private PDF download and public reference verification use separate deployed Edge Functions.
+- **My Learning / Certificates:** per-method learning status, exam history, issued educational certificates, PDF download and a public verification page.
 
-The redesign is being developed on the redesign/fresh-academy-ui branch (https://github.com/rahulk2oo4/ut-masterclass-academy-NDT/tree/redesign/fresh-academy-ui) and proposed in PR #3 (https://github.com/rahulk2oo4/ut-masterclass-academy-NDT/pull/3). It introduces a standalone responsive UI using burnt orange (#C65D24), dark maroon (#4A1020), and white, with method guides, 20 learning modules, original SVG schematics, 24 formula references across multiple NDT topics and interactive calculators, a glossary, curated media links, practice questions, and local progress tracking.
+## Backend and data access
 
-The previous interface is preserved separately as legacy.html on the redesign branch. The new UI is not deployed to the public Pages URL until the pull request is reviewed and merged. The redesign CI build/syntax validation passed on merge. Cloud progress synchronization has been implemented in the follow-up branch; verify real email authentication and learner-to-learner isolation before production release.
+The site uses the Supabase public browser key only. The service-role key remains in Supabase Edge Function secrets and is not embedded in the website.
 
-The redesign uses separate `academy_module_progress` and `academy_quiz_attempts` tables for cloud-synced module completion and practice quiz scores. Both tables have Row Level Security policies scoped to the authenticated learner. The existing legacy progress tables remain unchanged. External media is linked to its publisher; link availability, licensing and technical suitability must be checked before formal release. The NDE Ed About URL rejected direct access during implementation, so not every source page or asset has been verified.
+Deployed Edge Functions:
 
-## Deploy
-1. Repository **Settings → Pages** → choose **GitHub Actions** as the source.
-2. Push to `main` (the workflow is already present). Open **Actions** and confirm the deployment succeeds.
-3. Visit the Pages URL above. Treat it as published only when the workflow succeeds and it loads.
+| Function | Access | Purpose |
+|---|---|---|
+| `final-exam` | Authenticated | Method eligibility, 100-question attempt, answer autosave/resume, scoring, history and certificate eligibility/issuance |
+| `certificate-pdf` | Authenticated | Check certificate ownership and generate a private PDF download |
+| `verify-certificate` | Public reference lookup | Verify a certificate reference and return its limited verification fields |
 
-## Supabase setup
-The frontend configuration is already connected to the existing Supabase project using its public publishable key. The database migration `ut_masterclass_rls_alignment` has been applied, and the `profiles` and `course_progress` tables have RLS enabled with owner-only policies.
-1. In Supabase **Authentication → URL Configuration**, set the Site URL to the published Pages URL and allow `https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/`.
-2. Enable email/password sign-in and email confirmation; test signup, verification, password reset and sign-in.
-3. After the cloud-progress update is merged, test sign-up, email verification, sign-in, module completion, quiz attempts and data isolation with a second account.
+The database includes `academy_method_lesson_progress` with RLS policies scoped to `auth.uid()`. Course certificate records store course-completion and final-examination dates. Exam scoring and certificate eligibility are checked server-side, not accepted from browser-submitted scores.
 
-## Security
-- The browser uses a Supabase publishable key; this is not a service-role secret.
-- Never put a service-role key or database password in GitHub.
-- RLS restricts learner profile/progress rows to the authenticated owner's ID.
-- Course content is public. Do not store private training/customer data in the repository.
+## Important release limitations
 
-## Course scope
-The app has 24 classes across seven phases. Each class includes objectives, prerequisite knowledge, notes, terminology, example, practical activity, common-mistake guidance, source note and a five-question quiz. Qualified UT/PAUT/TOFD technical review is required before formal release.
+The current implementation is a working development integration, **not yet ready to be described as a fully validated NDT examination or a complete professional training product**.
 
-This resource does not provide accredited NDT personnel certification or authorisation to inspect production parts independently. Real inspections must follow the applicable approved procedure, governing standards, employer requirements and qualified supervision.
+1. The 100-question banks are generated from the course metadata and shared question templates; they are not individually authored and validated by a qualified NDT subject-matter expert. They need technical review, answer-key verification and de-duplication before serious exam-preparation use.
+2. The 25 lesson pages now have a consistent instructional structure, but many sections are generated from the current method descriptions and topic metadata. They are not 600 separately peer-reviewed, textbook-depth lessons.
+3. The practice bank generates 9 core practice formats/items per topic lesson (plus supported formula questions), below the prompt's target of 15–25 questions per substantial lesson. Do not describe every topic bank as complete.
+4. Code syntax and database/policy configuration have been inspected. A signed-in browser-level end-to-end test (sign-up, lesson completion, exam save/resume, submit/review, PDF generation and public verification) has not been completed in this environment.
+5. An advisor check reports **Leaked Password Protection Disabled** in Supabase Auth. An administrator should consider enabling it in Authentication settings.
+6. Educational certificate completion is not ASNT/ISO certification, employer authorisation, regulatory qualification, or proof of independent inspection competence.
 
-## Remaining release checks
-- Enable GitHub Pages if not already enabled and verify the workflow passes.
-- Configure Supabase auth redirect URL and verify real email flows.
-- Phone OTP and admin lesson editor are not implemented in this version.
+## Deploy and verify
 
-## Current interactive sections
-- Formula Library: 23 searchable formulas with method/subject/difficulty filters, variable definitions and units, assumptions, worked examples, interactive calculators, local/cloud bookmarks, printing, and text-note export.
-- NDT Methods: educational overview of UT, PAUT, TOFD, RT, MT, PT, ET, VT, AE, and IRT.
-- Knowledge Centre: 18 topic categories spanning UT fundamentals, calibration, signal views, automated inspection, composites, reporting, and safety.
-- Videos: supplementary video-search links grouped by topic.
-- Practice Quizzes: mixed-method questions with explanations; the practice target is 50%.
-- Registration profile: full name, learner category, and optional date-of-birth profile field. Date of birth is stored only when provided.
+GitHub Actions publishes the static website through GitHub Pages. Confirm the latest workflow run at:
+https://github.com/rahulk2oo4/ut-masterclass-academy-NDT/actions
 
-## Implementation note
-The existing repository is a single-page static HTML/JavaScript application, not the React + TypeScript + Vite stack described in the original project brief. The new sections extend the working application incrementally to avoid discarding existing lesson and Supabase progress functionality. A full React migration, database-driven CMS, secure admin editor, formal final examination, and server-verified certificate workflow remain separate implementation stages.
+In Supabase **Authentication → URL Configuration**, confirm the site URL and redirect allow-list include:
+`https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/`
 
-## Deployment and configuration
+Use a dedicated test account and verify each flow before public release. Never place a service-role key, database password or private/customer inspection data in the repository.
 
-This repository currently uses the existing single-page HTML/JavaScript app with GitHub Actions and GitHub Pages. It does **not** currently contain a React + TypeScript + Vite build, so the implementation has been extended incrementally rather than replacing the working lesson experience.
+## Educational disclaimer
 
-1. In GitHub, open **Settings → Pages** and set the build/deployment source to **GitHub Actions**.
-2. Check the latest run under **Actions → Deploy academy to GitHub Pages**. The workflow validates the JavaScript files, copies the required static assets, and deploys the artifact.
-3. The expected project URL is `https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/`. If a 404 persists after a successful deploy, check the URL shown in **Settings → Pages**, confirm the repository Pages source is GitHub Actions, and allow a few minutes for the first deployment to propagate.
-4. The current static app reads its public Supabase URL and publishable key from `supabase-config.js`. The publishable key is designed for browser use; database access must remain protected by RLS. Never put a Supabase service-role/secret key in browser code or GitHub.
-5. Database schema and migrations are under `supabase/schema.sql` and `supabase/migrations/`; repeatable starter content is in `supabase/seed.sql`. The connected Supabase project has the academy content, bookmark, exam and certificate tables, with RLS enabled.
-
-### Supabase administrator setup
-
-The CMS is visible only to an account whose **trusted Auth app metadata** includes `role: "admin"`. A client-editable profile field is deliberately not used for authorization. To authorize your own verified account, open the Supabase SQL Editor and run the following after replacing the email with the exact account you intend to administer:
-
-```sql
-update auth.users
-set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
-  || '{"role":"admin"}'::jsonb
-where email = 'YOUR_VERIFIED_SIGNUP_EMAIL';
-```
-
-Then sign out and sign back in so the session receives the updated claim. Keep admin assignment restricted to trusted project administrators.
-
-### Final exam and certificates
-
-- The server-side final exam draws 50 randomized questions per attempt from a 60-question mixed-method bank, with a 60-minute time limit, a 50% pass mark, and at most two attempts.
-- The exam service checks that all 24 existing lessons and lesson quizzes are marked complete before starting.
-- The answer key remains in the Supabase Edge Function; scoring and certificate issuance occur server-side.
-- Successful learners receive a unique Academy course-completion certificate. The exam result offers a server-generated PDF stored in a private Supabase Storage bucket; its signed download URL expires after 10 minutes. The certificate page also supports **Print / Save as PDF** and shows the QR code/public verification page.
-- Certificates can be revoked by an authorized admin. Academy certificates are educational records and do **not** grant ASNT, ISO 9712 or other external personnel certification.
-
-### Environment template
-
-`.env.example` documents public configuration names for a future Vite migration. The current static site uses `supabase-config.js`; no real secrets belong in `.env.example`.
-
-### Instructor practical assessment and remaining security setting
-
-The admin CMS includes an instructor checklist and assessment status (pending, passed, or needs review), learner progress review, quiz/question editing with a separately protected answer-key table, resource uploads, and certificate revocation. Admin UI access requires the trusted `app_metadata.role = "admin"` claim described above.
-
-The Supabase security advisor currently reports one remaining configuration warning: **Leaked Password Protection is disabled**. Enable it in the Supabase Dashboard under **Authentication → Password Security** (the exact label may vary) to reject passwords known to have been compromised. This is a project Auth setting that was not available through the connected database tools.
+The academy is a self-learning theory resource. Learners must follow applicable codes, standards, written procedures, safety controls and required supervision/authorisation for real inspection work. A course assessment does not confer an external personnel certification.
