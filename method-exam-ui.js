@@ -481,12 +481,29 @@ document.addEventListener("input",function(ev){
   if(q&&shown)group.open=true;
  });
 });
+function openFormulaLibrary(){
+ removeTimer();
+ if(window.NDT_MASTERCLASS_PRACTICE&&window.NDT_MASTERCLASS_PRACTICE.clear)window.NDT_MASTERCLASS_PRACTICE.clear();
+ ui.page="main";window.NDT_MASTERCLASS_CUSTOM_VIEW=true;
+ if(window.NDTFormulaLibrary&&typeof window.NDTFormulaLibrary.render==="function"){window.NDTFormulaLibrary.render(root);return;}
+ root.innerHTML='<section class="page-hero"><h1>NDT Formula Library</h1><p>Loading the method-wise formula calculators…</p></section>';
+ if(window.__ndtFormulaLibraryLoading)return;
+ window.__ndtFormulaLibraryLoading=true;
+ var script=document.createElement("script");
+ script.src="./ndt-formula-library.js?v=985b7227724504eb30b483ccdd9ac1ff4a1bfce3";
+ script.onload=function(){window.__ndtFormulaLibraryLoading=false;if(window.NDTFormulaLibrary)window.NDTFormulaLibrary.render(root);else root.innerHTML='<div class="notice">Formula library loaded, but its interface could not start. Refresh and try again.</div>';};
+ script.onerror=function(){window.__ndtFormulaLibraryLoading=false;root.innerHTML='<div class="notice">Could not load the formula library. Check your connection and refresh the page.</div>';};
+ document.head.appendChild(script);
+}
 document.addEventListener("click",function(ev){
  var b=ev.target.closest("button,a");if(!b)return;
  var nav=b.getAttribute("data-method-exam-nav");
  if(nav){ev.preventDefault();ev.stopImmediatePropagation();handleNav(nav);return;}
  // Route every lesson link through the same protected lesson opener, preventing
  // the anchor query string from causing a full-page reload or returning Home.
+ if(b.getAttribute("data-view")==="formulas"||b.getAttribute("data-method-exam-nav")==="formulas"){
+  ev.preventDefault();ev.stopImmediatePropagation();openFormulaLibrary();return;
+ }
  if(b.hasAttribute("data-ndt-topic")){
   ev.preventDefault();ev.stopImmediatePropagation();
   var lessonParts=(b.getAttribute("data-ndt-topic")||"").split("|");
