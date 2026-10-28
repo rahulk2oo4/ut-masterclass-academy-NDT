@@ -14,7 +14,7 @@ This is a fresh, standalone static website in `fresh-academy/`. It does not rout
 
 ## Preview / GitHub Pages
 Once this folder is merged into `main` and GitHub Pages serves the repository root, open:
-`https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/fresh-academy/`
+`https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/` (when the GitHub Actions deployment succeeds). If GitHub Pages is publishing from the repository branch instead, the root redirect opens `https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/fresh-academy/`.
 
 If Pages is configured to publish from a different folder or deployment workflow, adjust the Pages source accordingly.
 
