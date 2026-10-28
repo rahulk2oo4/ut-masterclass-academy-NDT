@@ -3,9 +3,6 @@ name: Deploy Fresh NDT Masterclass Academy
 on:
   push:
     branches: ["main"]
-    paths:
-      - "fresh-academy/**"
-      - ".github/workflows/deploy-fresh-academy.yml"
   workflow_dispatch:
 
 permissions:
