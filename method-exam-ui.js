@@ -491,7 +491,7 @@ function openFormulaLibrary(){
  if(window.__ndtFormulaLibraryLoading)return;
  window.__ndtFormulaLibraryLoading=true;
  var script=document.createElement("script");
- script.src="./ndt-formula-library.js?v=20261028-worked-calculation-backfix";
+ script.src="./ndt-formula-library.js?v=20261028-worked-calculation-backfix-2";
  script.onload=function(){window.__ndtFormulaLibraryLoading=false;if(window.NDTFormulaLibrary)window.NDTFormulaLibrary.render(root);else root.innerHTML='<div class="notice">Formula library loaded, but its interface could not start. Refresh and try again.</div>';};
  script.onerror=function(){window.__ndtFormulaLibraryLoading=false;root.innerHTML='<div class="notice">Could not load the formula library. Check your connection and refresh the page.</div>';};
  document.head.appendChild(script);
