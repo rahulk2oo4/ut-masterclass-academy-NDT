@@ -234,15 +234,38 @@ function goBack(){
  if(prev){ui.page=prev.page;ui.courseMethod=prev.courseMethod||ui.courseMethod;ui.historyMethod=prev.historyMethod||ui.historyMethod;ui.error="";ui.notice="";if(ui.page==="lesson")ui.page="course";window.NDT_MASTERCLASS_CUSTOM_VIEW=true;render();return;}
  setPage("exams",{push:false});
 }
+function renderFallbackLesson(methodId,lessonId,error){
+ var m=getMethod(methodId),topics=getTopics(m.id),idx=topics.findIndex(function(t){return t.id===lessonId;}),t=topics[idx>=0?idx:0];
+ if(!t){ui.page="course";ui.error="This lesson could not be found. Please choose a lesson from the course outline.";render();return;}
+ var prev=idx>0?topics[idx-1]:null,next=idx<topics.length-1?topics[idx+1]:null;
+ root.innerHTML=crumbs(m.name)+'<section class="lesson-content course-topic-content lesson-fallback-content"><div class="course-lesson-meta"><span class="tag">'+esc(m.short)+'</span><span class="tag">'+esc(t.group)+'</span><span class="small">Lesson '+(idx+1)+' of '+topics.length+'</span></div><h1>'+esc(m.name)+': '+esc(t.title)+'</h1><p class="lesson-lead">'+esc(t.text)+'</p><section class="lesson-detail-block"><h2>Technical principle</h2><p>'+esc(m.principle)+'</p><h2>Equipment and workflow</h2><p>'+esc(m.workflow)+'</p><h2>Applications and limitations</h2><p>'+esc(m.finds)+'</p><p>'+esc(m.limits)+'</p><h2>Troubleshooting</h2><p>'+esc(m.mistakes)+'</p></section><div class="hero-actions"><button class="btn btn-outline" data-method-exam-action="back-course" data-method="'+esc(m.id)+'">← Back to course dashboard</button>'+(prev?'<button class="btn btn-outline" data-method-exam-action="open-lesson" data-method="'+esc(m.id)+'" data-lesson="'+esc(prev.id)+'">← Previous lesson</button>':'')+(next?'<button class="btn btn-primary" data-method-exam-action="open-lesson" data-method="'+esc(m.id)+'" data-lesson="'+esc(next.id)+'">Start next lesson →</button>':'')+'</div><div class="notice">A simplified lesson view was opened because the enhanced lesson renderer could not load. '+(error?'Technical detail was recorded in the browser console.':'')+'</div></section>';
+}
 function renderLesson(methodId,lessonId){
- ui.courseMethod=methodId;ui.lessonId=lessonId;
- if(window.NDT_MASTERCLASS_PRACTICE&&window.NDT_MASTERCLASS_PRACTICE.openTopic){
-  window.NDT_MASTERCLASS_PRACTICE.openTopic(methodId,lessonId);
- }else{
-  window.NDT_MASTERCLASS_CUSTOM_VIEW=false;
-  api.openView("method",methodId,true);
+ var mid=methodId||ui.courseMethod||"ut",topics=getTopics(mid);
+ var valid=topics.find(function(t){return t.id===lessonId;});
+ if(!valid){renderFallbackLesson(mid,lessonId,new Error("Lesson ID not found"));return;}
+ ui.courseMethod=mid;ui.lessonId=valid.id;ui.page="lesson";
+ window.NDT_MASTERCLASS_CUSTOM_VIEW=false;
+ try{
+  if(window.NDT_MASTERCLASS_PRACTICE&&typeof window.NDT_MASTERCLASS_PRACTICE.openTopic==="function"){
+   window.NDT_MASTERCLASS_PRACTICE.openTopic(mid,valid.id);
+  }else{
+   renderFallbackLesson(mid,valid.id,new Error("Lesson renderer unavailable"));
+   return;
+  }
+ }catch(err){
+  console.error("NDT Masterclass lesson renderer failed:",err);
+  renderFallbackLesson(mid,valid.id,err);
+  return;
  }
- setTimeout(decorateTopic,0);
+ setTimeout(function(){
+  if(ui.page!=="lesson")return;
+  if(!root.querySelector(".course-topic-content")&&!root.querySelector(".lesson-fallback-content")){
+   renderFallbackLesson(mid,valid.id,new Error("Lesson content was not inserted"));
+   return;
+  }
+  decorateTopic();
+ },0);
 }
 function decorateTopic(){
  var h=root.querySelector(".lesson-content h1");
@@ -423,7 +446,7 @@ function action(ev,b){
  if(a==="back"){goBack();return true;}
  if(a==="home"){removeTimer();openMain("home");return true;}
  if(a==="open-course"){setPage("course",{method:mid,push:true});return true;}
- if(a==="open-lesson"){ui.courseMethod=mid;ui.lessonId=b.getAttribute("data-lesson");setPage("lesson",{method:mid,lesson:ui.lessonId,push:false});return true;}
+ if(a==="open-lesson"){var lid=b.getAttribute("data-lesson");setPage("lesson",{method:mid,lesson:lid,push:true});return true;}
  if(a==="back-course"){ui.courseMethod=mid;setPage("course",{method:mid,push:false});return true;}
  if(a==="open-formulas"){openMain("formulas");return true;}
  if(a==="mark-complete"){markLesson();return true;}
@@ -462,6 +485,16 @@ document.addEventListener("click",function(ev){
  var b=ev.target.closest("button,a");if(!b)return;
  var nav=b.getAttribute("data-method-exam-nav");
  if(nav){ev.preventDefault();ev.stopImmediatePropagation();handleNav(nav);return;}
+ // Route every lesson link through the same protected lesson opener, preventing
+ // the anchor query string from causing a full-page reload or returning Home.
+ if(b.hasAttribute("data-ndt-topic")){
+  ev.preventDefault();ev.stopImmediatePropagation();
+  var lessonParts=(b.getAttribute("data-ndt-topic")||"").split("|");
+  if(lessonParts.length>=2&&lessonParts[0]&&lessonParts[1]){
+   setPage("lesson",{method:lessonParts[0],lesson:lessonParts[1],push:true});
+  }
+  return;
+ }
  // Open structured courses inside the existing app. Without preventing the anchor's
  // default navigation, this click renders the course and then reloads the page,
  // which can reset the SPA back to Home or show stale navigation state.
