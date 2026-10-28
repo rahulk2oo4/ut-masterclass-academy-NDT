@@ -513,6 +513,19 @@ document.addEventListener("click",function(ev){
   window.NDT_MASTERCLASS_CUSTOM_VIEW=false;
   return;
  }
+ // Route Learning Academy module launch/previous/next controls through this capture-phase
+ // handler rather than relying on the later body-level listener. This keeps module buttons
+ // responsive when the method-course and legacy academy click handlers coexist.
+ if(b.hasAttribute("data-open-module")){
+  ev.preventDefault();ev.stopImmediatePropagation();
+  try{history.replaceState(null,"",location.pathname);}catch(e){}
+  removeTimer();
+  if(window.NDT_MASTERCLASS_PRACTICE&&window.NDT_MASTERCLASS_PRACTICE.clear)window.NDT_MASTERCLASS_PRACTICE.clear();
+  ui.page="main";window.NDT_MASTERCLASS_CUSTOM_VIEW=false;
+  api.openView("module",b.getAttribute("data-open-module"));
+  setTopNavActive("academy");
+  return;
+ }
  if(b.hasAttribute("data-method-exam-action")){action(ev,b);return;}
  if(b.hasAttribute("data-ndt-practice")&&root.querySelector(".lesson-content")){
   ev.preventDefault();ev.stopImmediatePropagation();
