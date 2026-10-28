@@ -1,4 +1,4 @@
-/* UT Masterclass Academy — fresh UI controller */
+/* NDT Masterclass Academy — fresh UI controller */
 (function () {
   "use strict";
   var D = window.UTMA_DATA || {methods:[],modules:[],formulas:[],knowledge:[],videos:[],quiz:[]};
