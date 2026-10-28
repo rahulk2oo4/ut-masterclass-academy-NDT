@@ -1,6 +1,6 @@
-# NDT Masterclass
+# NDT Masterclass Academy
 
-**Tagline:** NDT theory — Learn. Practise. Master.  
+**Tagline:** Ultrasonic Testing · Learn. Practise. Master.  
 **Theme:** burnt orange `#C65D24`, dark maroon `#4A1020`, deep maroon `#2D0A14`, white and warm white.
 
 - **Live website:** https://rahulk2oo4.github.io/ut-masterclass-academy-NDT/
@@ -13,6 +13,7 @@ The deployed root app is an existing static HTML/CSS/JavaScript application. The
 
 - **24 NDT methods:** VT, PT, MT, RT, UT, PAUT, TOFD, ET, IRT, LT, AE, guided wave, MFL, shearography, GPR, neutron radiography, DR, LUT, CT, DIC, microwave, terahertz, robotic/automated NDT, and AI-assisted interpretation.
 - **Method lesson pages:** 25 topic pages per method, rendered with objectives, principles, equipment, workflow, limitations, interpretation, examples, applicable formula references, safety, terminology and summary sections.
+- **Formula Library:** the dedicated `formula-library.js` is loaded from the main app. Worked examples are calculated using the same formula functions as the interactive calculators and are visible without opening the formula detail panel.
 - **Learning progress:** local browser progress, optional explicit sync to a learner account, and per-method Supabase lesson records protected by row-level security.
 - **Practice Centre:** configurable filters for method, topic, subtopic, difficulty, type and question count. Its current question bank is generated from the method/topic metadata. Written-response checking is approximate.
 - **Final exams:** a dedicated 100-question server-generated bank per method; 30/60/90/120-minute options; question navigation, flagging, saved answers/resume, server-side score calculation, 50/100 educational pass mark, history, review and retakes.
