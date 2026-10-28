@@ -68,6 +68,8 @@ jobs:
           cp supabase/migrations/*.sql _site/supabase/migrations/
           cp README.md _site/README.md
           cp .env.example _site/.env.example
+          mkdir -p _site/learning-academy
+          cp learning-academy/index.html _site/learning-academy/index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
