@@ -72,7 +72,7 @@
     if(method==="PT / LPT") return formula.method==="PT / LPT" || formula.method==="PT" || formula.method==="PT / LPT";
     return formula.method.split(" / ").includes(method);
   };
-  let selectedMethod = null, selectedFormula = null, searchText = "";
+  let selectedMethod = null, selectedTopic = null, selectedFormula = null, searchText = "";
   function render(root) {
     if(!root) return;
     root.innerHTML = '<div class="ndtf-wrap"><div class="ndtf-top"><div><div class="eyebrow">Formula reference • Interactive calculations</div><h1>NDT Formula Library</h1><p>Choose an inspection method, open a topic, then calculate using labelled inputs. Results are for theory learning and are not acceptance decisions.</p></div><div class="ndtf-actions"><button class="btn btn-outline" data-ndtf-home>← Return to academy</button></div></div><div class="ndtf-stats"><b>'+F.length+'</b><span>formula calculators / references</span><b>13</b><span>method categories</span></div><label class="ndtf-search">Search formulas, topics or symbols<input type="search" id="ndtf-search" placeholder="e.g. thickness, dB, skin depth, leak rate" value="'+esc(searchText)+'"></label><div id="ndtf-content"></div><p class="ndtf-note">Technical reminder: simplified educational equations may not represent every instrument, material, geometry or procedure. Check assumptions, units, calibration, the applicable code and approved written procedure before applying a calculation to an inspection.</p></div>';
@@ -100,16 +100,23 @@
       });
       return;
     }
+    if(selectedTopic && selectedMethod){
+      const items=F.filter(x=>matchesMethod(x,selectedMethod)&&x.topic===selectedTopic&&(!q||(x.name+" "+x.eq+" "+x.explain).toLowerCase().includes(q)));
+      host.innerHTML='<div class="ndtf-crumb"><button data-ndtf-back-topics>← Back to '+esc(methods.find(m=>m[0]===selectedMethod)?.[1]||selectedMethod)+'</button><span> / </span><strong>'+esc(selectedTopic)+'</strong></div><h2>'+esc(selectedTopic)+'</h2><p>Choose a formula to see its variables, assumptions, worked example and interactive calculator.</p><div class="ndtf-formula-grid">'+(items.length?items.map(formulaCard).join(""):'<div class="ndtf-empty">No formulas match this topic search.</div>')+'</div>';
+      host.querySelector("[data-ndtf-back-topics]").addEventListener("click",()=>{selectedTopic=null;renderContent(host);});
+      host.querySelectorAll("[data-ndtf-open]").forEach(btn=>btn.addEventListener("click",()=>{selectedFormula=F.find(x=>x.id===btn.getAttribute("data-ndtf-open"));renderContent(host);}));
+      return;
+    }
     const filtered=F.filter(x=>(!selectedMethod||matchesMethod(x,selectedMethod))&&(!q||(x.name+" "+x.topic+" "+x.method+" "+x.eq+" "+x.explain).toLowerCase().includes(q)));
     if(selectedMethod){
       host.innerHTML='<div class="ndtf-crumb"><button data-ndtf-all>All methods</button><span> / </span><strong>'+esc(methods.find(m=>m[0]===selectedMethod)?.[1]||selectedMethod)+'</strong></div><div class="ndtf-topic-head"><h2>Choose a topic</h2><span class="ndtf-chip">'+filtered.length+' formula(s)</span></div>'+(filtered.length?'<div class="ndtf-topic-grid">'+[...new Set(filtered.map(x=>x.topic))].map(topic=>{const items=filtered.filter(x=>x.topic===topic);return '<article class="ndtf-topic"><span class="ndtf-chip">'+items.length+' formula(s)</span><h3>'+esc(topic)+'</h3><p>'+esc(items.map(x=>x.name).slice(0,3).join(" · "))+(items.length>3?" …":"")+'</p><button class="btn btn-primary" data-ndtf-topic="'+esc(topic)+'">Open topic →</button></article>';}).join("")+'</div><div class="ndtf-topic-head"><h2>All formulas in this method</h2></div><div class="ndtf-formula-grid">'+filtered.map(x=>formulaCard(x)).join("")+'</div>':'<div class="ndtf-empty">No formulas are mapped to this method yet. Browse General NDT calculations or use search.</div>');
-      host.querySelector("[data-ndtf-all]").addEventListener("click",()=>{selectedMethod=null;renderContent(host);});
-      host.querySelectorAll("[data-ndtf-topic]").forEach(btn=>btn.addEventListener("click",()=>{const topic=btn.getAttribute("data-ndtf-topic");const first=filtered.find(x=>x.topic===topic);if(first)selectedFormula=first;renderContent(host);}));
+      host.querySelector("[data-ndtf-all]").addEventListener("click",()=>{selectedMethod=null;selectedTopic=null;renderContent(host);});
+      host.querySelectorAll("[data-ndtf-topic]").forEach(btn=>btn.addEventListener("click",()=>{const topic=btn.getAttribute("data-ndtf-topic");const first=filtered.find(x=>x.topic===topic);if(first)selectedTopic=topic;renderContent(host);}));
       host.querySelectorAll("[data-ndtf-open]").forEach(btn=>btn.addEventListener("click",()=>{selectedFormula=F.find(x=>x.id===btn.getAttribute("data-ndtf-open"));renderContent(host);}));
       return;
     }
     host.innerHTML='<div class="ndtf-method-grid">'+methods.map(m=>{const count=F.filter(x=>matchesMethod(x,m[0])).length;return '<article class="ndtf-method"><span class="ndtf-chip">'+count+' formula(s)</span><h3>'+esc(m[1])+'</h3><p>Browse method-specific equations, definitions, assumptions and interactive calculations.</p><button class="btn btn-primary" data-ndtf-method="'+esc(m[0])+'">Open formulas →</button></article>';}).join("")+'</div>'+(q?'<h2>Search results</h2><div class="ndtf-formula-grid">'+filtered.map(x=>formulaCard(x)).join("")+'</div>':'');
-    host.querySelectorAll("[data-ndtf-method]").forEach(btn=>btn.addEventListener("click",()=>{selectedMethod=btn.getAttribute("data-ndtf-method");selectedFormula=null;renderContent(host);}));
+    host.querySelectorAll("[data-ndtf-method]").forEach(btn=>btn.addEventListener("click",()=>{selectedMethod=btn.getAttribute("data-ndtf-method");selectedTopic=null;selectedFormula=null;renderContent(host);}));
     host.querySelectorAll("[data-ndtf-open]").forEach(btn=>btn.addEventListener("click",()=>{selectedFormula=F.find(x=>x.id===btn.getAttribute("data-ndtf-open"));selectedMethod=selectedFormula.method.split(" / ")[0];renderContent(host);}));
   }
   function formulaCard(x){return '<article class="ndtf-formula"><span class="ndtf-chip">'+esc(x.method)+' · '+esc(x.topic)+'</span><h3>'+esc(x.name)+'</h3><div class="ndtf-equation">'+esc(x.eq)+'</div><p>'+esc(x.explain)+'</p><button class="btn btn-outline" data-ndtf-open="'+esc(x.id)+'">Open formula & calculator →</button></article>';}
