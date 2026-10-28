@@ -1,4 +1,4 @@
-/* UT Masterclass Academy — knowledge-centre navigation and practice pages */
+/* NDT Masterclass Academy — knowledge-centre navigation and practice pages */
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
@@ -181,7 +181,7 @@
   }
   function openAbout(){
     setActive("about");$("crumbPage").textContent="About";
-    $("page").innerHTML=heading("About the Academy","Learn. Practise. Master.","UT Masterclass Academy is an independent educational resource designed to make NDT theory easier to study through structured lessons, worked examples and interactive learning tools.")+
+    $("page").innerHTML=heading("About the Academy","Learn. Practise. Master.","NDT Masterclass Academy is an independent educational resource designed to make NDT theory easier to study through structured lessons, worked examples and interactive learning tools.")+
     '<div class="formula-list"><article class="formula-card"><h3>Mission</h3><p>Make NDT theory and ultrasonic testing concepts accessible through clear explanations, unit-aware calculations, visual learning and repeatable practice.</p></article><article class="formula-card"><h3>Learning approach</h3><p>Start with fundamentals, connect equations to inspection decisions, practise signal interpretation, review mistakes and build a traceable learning record.</p></article><article class="formula-card"><h3>Who it is for</h3><p>Students, engineers, inspection professionals and learners who want a structured introduction to NDT methods and UT applications.</p></article><article class="formula-card"><h3>Practical relevance</h3><p>Topics include conventional UT, PAUT, TOFD, immersion/squirter systems, automated scanning, composite inspection and reporting fundamentals.</p></article></div><div class="formula-note"><b>Educational disclaimer:</b> The Academy is not represented as an accredited certification body. Course completion does not confer ASNT, ISO 9712 or other external personnel certification, nor authorization to independently inspect production parts. Use current standards, approved procedures and qualified supervision.</div>';
     attachBack();
   }
