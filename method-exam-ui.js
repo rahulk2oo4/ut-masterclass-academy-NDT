@@ -1,4 +1,4 @@
-/* NDT Masterclass — per-method learning, examinations and educational certificates */
+/* NDT Masterclass Academy — per-method learning, examinations and educational certificates */
 (function(){
 "use strict";
 var api=window.NDT_MASTERCLASS;
@@ -254,7 +254,7 @@ function renderLesson(methodId,lessonId){
    return;
   }
  }catch(err){
-  console.error("NDT Masterclass lesson renderer failed:",err);
+  console.error("NDT Masterclass Academy lesson renderer failed:",err);
   renderFallbackLesson(mid,valid.id,err);
   return;
  }
