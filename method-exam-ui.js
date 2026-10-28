@@ -544,6 +544,18 @@ document.addEventListener("click",function(ev){
   setTopNavActive("academy");
   return;
  }
+ // Recovery route for lesson-launch controls from older course cards. Some cached/legacy
+ // views render a visible "Start lesson" control without the current action attribute.
+ var launchLabel=(b.textContent||"").replace(/\s+/g," ").trim();
+ if(/^start(?:\s+\w+)?\s+lesson(?:\b|\s|→)/i.test(launchLabel)||b.hasAttribute("data-start-lesson")||b.hasAttribute("data-method-exam-open-lesson")){
+  ev.preventDefault();ev.stopImmediatePropagation();
+  var lessonMethod=b.getAttribute("data-method")||b.getAttribute("data-mid")||ui.courseMethod||"ut";
+  var lessonId=b.getAttribute("data-lesson")||b.getAttribute("data-method-exam-open-lesson")||"";
+  if(!lessonId){var lessonTopics=getTopics(lessonMethod);lessonId=lessonTopics.length?lessonTopics[0].id:"";}
+  if(lessonId){setPage("lesson",{method:lessonMethod,lesson:lessonId,push:true});}
+  else{ui.error="No lesson is available for this method yet.";render();}
+  return;
+ }
  if(b.hasAttribute("data-method-exam-action")){action(ev,b);return;}
  if(b.hasAttribute("data-ndt-practice")&&root.querySelector(".lesson-content")){
   ev.preventDefault();ev.stopImmediatePropagation();
