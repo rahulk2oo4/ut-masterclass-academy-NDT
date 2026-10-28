@@ -135,3 +135,7 @@ footer b{letter-spacing:.08em;font-size:11px}
 .photo-placeholder{padding:22px;border:1px dashed #d9c2b8;border-radius:12px;color:var(--muted);font-size:13px;grid-column:1/-1}
 .photo-placeholder a{color:var(--orange);font-weight:750}
 @media(max-width:640px){.photo-grid{grid-template-columns:1fr}.photo-item img{height:220px}.back-row .btn{flex:1}.resource-card{padding:15px}}
+
+
+.video-frame{position:relative;width:100%;aspect-ratio:16/9;margin:14px 0 16px;overflow:hidden;border-radius:13px;background:#1d0b10}
+.video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
