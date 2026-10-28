@@ -254,7 +254,7 @@
     mountStyles();
     const btn=$("formulaBtn");
     if(btn)btn.addEventListener("click",open);
-    window.addEventListener("utma:formula-close",()=>{if(active)return;const crumb=$("crumbPage");if(crumb)crumb.textContent="Dashboard";const page=$("page");if(page&&typeof window.utmaRenderDashboard==="function")window.utmaRenderDashboard();else location.reload();});
+    window.addEventListener("utma:formula-close",()=>{if(active)return;const crumb=$("crumbPage");if(crumb)crumb.textContent="Dashboard";const app=$("app");if(app&&typeof window.utmaRenderDashboard==="function")window.utmaRenderDashboard();else{const notice=document.createElement("div");notice.className="formula-error";notice.setAttribute("role","alert");notice.textContent="Could not restore the academy view. Please reload the page.";document.body.appendChild(notice);}});
     // Existing course app exposes its dashboard renderer through a small bridge added in index.html.
   });
 })();
