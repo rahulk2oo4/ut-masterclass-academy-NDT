@@ -14,7 +14,6 @@ Open `index.html` in a modern browser. The page is a self-contained HTML/CSS/Jav
 - Supabase-backed email/password sign-up and sign-in, learner profile sync, and per-user lesson progress stored under row-level security.
 - Method-specific final examinations backed by the existing Supabase Edge Function: 100 server-generated method questions, a 120-minute attempt, server-side scoring, 50% pass mark, answer autosave, expiry submission, and eligibility-checked certificate records.
 - Simple educational certificate print layout with completion date and marks; it deliberately avoids displaying a certificate ID or QR code.
-- Supabase email/password sign-up and sign-in, profile sync, and per-learner lesson progress sync with row-level security policies already present in the connected project.
 - Maroon/orange/white academy theme.
 
 ## Current limitations — do not treat as production-ready
@@ -26,7 +25,7 @@ Open `index.html` in a modern browser. The page is a self-contained HTML/CSS/Jav
 
 ## Before public release
 1. Complete and technically review every lesson.
-2. Build and independently validate 100 unique questions per method, with answer explanations and balanced coverage.
+2. Independently validate the 100 generated questions per method, including answer explanations, technical accuracy and balanced coverage.
 3. Have a qualified NDT subject-matter expert review the generated exam bank and lesson content. Keep the server-side scoring and eligibility checks enabled.
 4. Add automated tests for navigation, progress gating, timer/refresh behaviour, formulas, answer selection, pass/fail and printing.
 5. Enable leaked-password protection in Supabase Auth, then test sign-up, email verification, sign-in, progress sync, all eight exams, timeout handling, certificate records, and printing.
