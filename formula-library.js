@@ -1,4 +1,4 @@
-/* UT Masterclass Academy — Formula Library
+/* NDT Masterclass Academy — Formula Library
  * Original educational reference content. Values are simplified for learning;
  * verify methods and assumptions against the applicable procedure and source.
  */
@@ -110,7 +110,7 @@
       .formula-card h3{font:800 15px Manrope;color:var(--maroon);margin:10px 0 7px}.formula-card p{font-size:12px;line-height:1.7;color:#594742}
       .formula-meta{display:flex;gap:6px;flex-wrap:wrap}.formula-tag{font-size:10px;font-weight:700;border-radius:20px;background:var(--soft);color:var(--maroon);padding:5px 8px}
       .formula-symbol{background:#fff8f3;border:1px solid #f0d7c7;border-radius:10px;padding:13px;font:700 19px "Cambria Math",Georgia,serif;color:var(--maroon);overflow-x:auto;margin:12px 0}
-      .formula-detail{border-top:1px solid var(--line);margin-top:13px;padding-top:12px}.formula-detail summary{font-size:12px;font-weight:800;color:var(--orange);cursor:pointer}
+      .formula-worked{margin:14px 0;padding:13px;border:1px solid #efd7c8;border-radius:10px;background:#fff8f3;font-size:12px;line-height:1.7}.formula-worked h4{font:800 12px Manrope;color:var(--maroon);margin:0 0 7px}.formula-worked ul{margin:7px 0 8px;padding-left:20px}.formula-worked .worked-result{font-weight:800;color:var(--maroon)}.formula-detail{border-top:1px solid var(--line);margin-top:13px;padding-top:12px}.formula-detail summary{font-size:12px;font-weight:800;color:var(--orange);cursor:pointer}
       .formula-detail h4{font:800 12px Manrope;color:var(--maroon);margin:14px 0 6px}.formula-vars{width:100%;border-collapse:collapse;font-size:11px}.formula-vars th,.formula-vars td{text-align:left;padding:7px;border-bottom:1px solid var(--line);vertical-align:top}.formula-vars th{color:var(--maroon);background:var(--cream)}
       .formula-calc{background:#fff8f3;border:1px solid #efd7c8;border-radius:10px;padding:12px;margin-top:12px}.formula-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.formula-input label{display:grid;gap:5px;font-size:10px;font-weight:700;color:var(--maroon)}.formula-input input{width:100%;min-width:0;border:1px solid var(--line);border-radius:7px;padding:8px;background:white;font-size:12px}
       .formula-result{margin-top:10px;padding:10px;border-radius:8px;background:white;border:1px solid var(--line);font-size:12px;line-height:1.6}.formula-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.formula-empty{grid-column:1/-1;padding:26px;text-align:center;border:1px dashed #d7b7a9;border-radius:12px;color:var(--muted);background:white}
@@ -142,6 +142,18 @@
     for(const id of localOnly)await persistBookmark(id,true);
     if(active)render();
   }
+  function workedExampleHtml(f){
+    const values={};
+    f.inputs.forEach(([key,label,value])=>{values[key]=Number(value);});
+    let result;
+    try{result=f.compute(values);}catch(error){result={error:"The example could not be calculated with the current defaults."};}
+    const inputs=f.inputs.map(([key,label,value])=>`<li><b>${esc(label)}:</b> ${esc(value)}</li>`).join("");
+    if(!result||result.error||!Number.isFinite(Number(result.value))){
+      return `<section class="formula-worked" aria-label="Worked calculation"><h4>Worked calculation</h4><p>Default example inputs:</p><ul>${inputs}</ul><p>${esc(result&&result.error?result.error:"This relationship needs valid inputs or additional context before a numerical example can be shown.")}</p><p>Use the calculator below with valid values.</p></section>`;
+    }
+    const formatted=new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(Number(result.value));
+    return `<section class="formula-worked" aria-label="Worked calculation"><h4>Worked calculation — calculated example</h4><p><b>Equation:</b> ${esc(f.symbol)}</p><p>Substitute the default values:</p><ul>${inputs}</ul><p class="worked-result">Calculated result: ${esc(formatted)} ${esc(result.unit)}</p><p>${esc(result.explain||"This result is calculated using the same function as the interactive calculator.")}</p><p class="small">Educational example only; confirm assumptions and units before applying a formula.</p></section>`;
+  }
   function render(){
     const q=($("formulaSearch")?.value||"").trim().toLowerCase();
     const method=$("formulaMethod")?.value||"all";
@@ -159,12 +171,12 @@
           <button class="formula-bookmark ${bookmarks.has(f.id)?"saved":""}" data-bookmark="${f.id}" aria-pressed="${bookmarks.has(f.id)}">${bookmarks.has(f.id)?"★ Saved":"☆ Bookmark"}</button>
         </div>
         <h3>${esc(f.name)}</h3><div class="formula-symbol" aria-label="Formula">${esc(f.symbol)}</div><p>${esc(f.explain)}</p>
+        ${workedExampleHtml(f)}
         <div class="formula-meta"><span class="formula-tag">${esc(f.subject)}</span></div>
         <details class="formula-detail"><summary>Variables, assumptions, worked example & calculator</summary>
           <h4>Variable definitions and units</h4>
           <table class="formula-vars"><thead><tr><th>Symbol</th><th>Meaning</th><th>Unit</th></tr></thead><tbody>${f.vars.map(v=>`<tr><td><b>${esc(v[0])}</b></td><td>${esc(v[1])}</td><td>${esc(v[2])}</td></tr>`).join("")}</tbody></table>
           <h4>Assumptions and conditions</h4><p>${esc(f.assumptions)}</p>
-          <h4>Worked example</h4><p>${esc(f.example)}</p>
           <h4>Calculator</h4><div class="formula-calc"><div class="formula-inputs">${f.inputs.map(([key,label,value])=>`<div class="formula-input"><label>${esc(label)}<input type="number" step="any" value="${value}" data-formula-input="${f.id}" data-key="${key}" aria-label="${esc(label)}"></label></div>`).join("")}</div><div class="formula-result" id="result-${f.id}" aria-live="polite">Adjust the values and select Calculate.</div><div class="formula-actions"><button class="btn btn-primary" data-calculate="${f.id}">Calculate</button><button class="btn btn-outline" data-reset="${f.id}">Reset values</button></div></div>
           <h4>Common mistakes</h4><p>${esc(f.mistakes)}</p>
           <h4>Related learning lesson</h4><p>${esc(f.lesson)}</p><button class="btn btn-outline" data-related-lesson="${f.id}">Open related lesson</button>
@@ -210,9 +222,9 @@
   function open(){
     if(active){render();return;}
     active=true;
-    const page=$("page");
+    const page=$("app");
     page.innerHTML=`
-      <section class="hero"><div class="eyebrow">Engineering reference desk</div><h1>Formula Library</h1><p>Find the equation, understand each variable, check units, follow a worked example, and explore a calculator. These tools support theory learning and do not replace approved inspection procedures or validated instrument software.</p><div class="hero-actions"><button class="btn btn-outline" id="formulaBack">← Return to Learning Academy</button><button class="btn btn-outline" id="formulaPrint">Print formula notes</button><button class="btn btn-outline" id="formulaDownload">Download notes (.txt)</button></div></section>
+      <section class="hero"><div class="eyebrow">Engineering reference desk</div><h1>Formula Library</h1><p>Find the equation, understand each variable, check units, follow a worked example, and explore a calculator. These tools support theory learning and do not replace approved inspection procedures or validated instrument software.</p><div class="hero-actions"><button class="btn btn-outline" id="formulaBack">← Back to previous section</button><button class="btn btn-outline" id="formulaPrint">Print formula notes</button><button class="btn btn-outline" id="formulaDownload">Download notes (.txt)</button></div></section>
       <div class="formula-summary"><div class="formula-stat"><strong>${formulas.length}</strong><span>Reference formulas</span></div><div class="formula-stat"><strong>3</strong><span>Difficulty levels</span></div><div class="formula-stat"><strong id="formulaSavedCount">${bookmarks.size}</strong><span>Saved in this browser</span></div></div>
       <div class="section-head"><div><h2>Search and filter</h2><p>Search by formula name, symbol, keyword, or related lesson.</p></div><span id="formulaCount" style="font-size:11px;color:var(--muted)"></span></div>
       <div class="formula-category-nav" id="formulaCategoryNav" aria-label="Browse formula categories"></div>
@@ -221,7 +233,7 @@
       <div id="formulaBookmarkStatus" class="formula-note" aria-live="polite">Bookmarks are saved in this browser. Sign in to sync formula bookmarks to your academy account.</div>
       <div class="formula-list" id="formulaCards"></div>
       <div class="formula-note"><b>Technical note:</b> Equations are simplified educational references. Confirm material properties, units, geometry, wave mode, instrument setup and applicable code/procedure before using any calculation in an inspection. A calculator result is not an acceptance decision.</div>
-      <div class="footer">UT Masterclass Academy · Formula Library · Original educational content</div>`;
+      <div class="footer">NDT Masterclass Academy · Formula Library · Original educational content</div>`;
     $("formulaBack").onclick=()=>{active=false;window.dispatchEvent(new CustomEvent("utma:formula-close"));};
     $("formulaPrint").onclick=()=>window.print();
     $("formulaDownload").onclick=downloadNotes;
@@ -234,8 +246,8 @@
     if(status&&window.utmaCurrentUser)status.textContent="Signed-in formula bookmarks sync with your academy account.";
   }
   function downloadNotes(){
-    const lines=["UT MASTERCLASS ACADEMY — FORMULA LIBRARY","Educational reference only; verify all calculations against applicable procedures.","",...formulas.map(f=>[f.name,f.symbol,"Method: "+f.method+" | Subject: "+f.subject+" | Difficulty: "+f.difficulty,f.explain,"Variables:",...f.vars.map(v=>v[0]+" — "+v[1]+" ["+v[2]+"]"),"Assumptions: "+f.assumptions,"Worked example: "+f.example,"Common mistakes: "+f.mistakes,"Related lesson: "+f.lesson,""].join("\n"))];
-    const blob=new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ut-masterclass-formula-library.txt";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+    const lines=["NDT MASTERCLASS ACADEMY — FORMULA LIBRARY","Educational reference only; verify all calculations against applicable procedures.","",...formulas.map(f=>[f.name,f.symbol,"Method: "+f.method+" | Subject: "+f.subject+" | Difficulty: "+f.difficulty,f.explain,"Variables:",...f.vars.map(v=>v[0]+" — "+v[1]+" ["+v[2]+"]"),"Assumptions: "+f.assumptions,"Worked example: "+f.example,"Common mistakes: "+f.mistakes,"Related lesson: "+f.lesson,""].join("\n"))];
+    const blob=new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ndt-masterclass-academy-formula-library.txt";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
   }
   window.utmaOpenFormulaLibrary=open;
   document.addEventListener("DOMContentLoaded",()=>{
