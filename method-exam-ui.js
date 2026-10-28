@@ -402,6 +402,7 @@ function markLesson(){
  });
 }
 function openMain(view,arg){
+ if(view==="formulas"){openFormulaLibrary();return;}
  removeTimer();
  try{history.replaceState(null,"",location.pathname);}catch(e){}
  if(window.NDT_MASTERCLASS_PRACTICE&&window.NDT_MASTERCLASS_PRACTICE.clear)window.NDT_MASTERCLASS_PRACTICE.clear();
@@ -448,7 +449,7 @@ function action(ev,b){
  if(a==="open-course"){setPage("course",{method:mid,push:true});return true;}
  if(a==="open-lesson"){var lid=b.getAttribute("data-lesson");setPage("lesson",{method:mid,lesson:lid,push:true});return true;}
  if(a==="back-course"){ui.courseMethod=mid;setPage("course",{method:mid,push:false});return true;}
- if(a==="open-formulas"){openMain("formulas");return true;}
+ if(a==="open-formulas"){openFormulaLibrary();return true;}
  if(a==="mark-complete"){markLesson();return true;}
  if(a==="start-exam"){startExam(mid);return true;}
  if(a==="previous"){moveQuestion(ui.exam?ui.exam.index-1:0);return true;}
