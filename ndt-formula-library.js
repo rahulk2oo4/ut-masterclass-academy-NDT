@@ -88,13 +88,30 @@
     root.querySelector("[data-ndtf-home]").addEventListener("click",()=>{selectedMethod=null;selectedFormula=null;searchText="";if(window.NDT_MASTERCLASS&&window.NDT_MASTERCLASS.openView)window.NDT_MASTERCLASS_CUSTOM_VIEW=false;if(window.NDT_MASTERCLASS.openView)window.NDT_MASTERCLASS.openView("home");else location.href="./";});
     renderContent(content);
   }
+  function workedMarkup(x){
+    const inputs=x.fields||[],values={};
+    inputs.forEach(a=>values[a[0]]=Number(a[2]));
+    let r=null;
+    try{if(typeof x.calc==="function")r=x.calc(values);}catch(e){}
+    let body="";
+    if(r&&!r.error&&Number.isFinite(r.value)){
+      const used=inputs.map(a=>esc(a[1])+" = "+esc(a[2])).join("; ");
+      body="<p><strong>Given:</strong> "+(used||"Use the stated equation")+"</p>"+
+        (r.steps?"<p><strong>Calculation:</strong> "+esc(r.steps)+"</p>":"")+
+        "<p><strong>Substitute and evaluate:</strong> "+esc(x.eq)+" using the given values.</p>"+
+        "<p><strong>Answer:</strong> "+esc(new Intl.NumberFormat(undefined,{maximumFractionDigits:7}).format(r.value))+" "+esc(r.unit)+"</p>";
+    }else{
+      body="<p>"+esc(x.example||"Use valid values and follow the equation step by step.")+"</p>";
+    }
+    return '<div class="ndtf-worked"><strong>Worked calculation</strong>'+body+'</div>';
+  }
   function renderContent(host) {
     if(!host)return;
     const q=searchText.trim().toLowerCase();
     if(selectedFormula){
       const x=selectedFormula;const inputs=x.fields||[];
-      host.innerHTML='<div class="ndtf-crumb"><button data-ndtf-back-formula>← Back to '+esc(selectedTopic||selectedMethod||"methods")+'</button><span> / </span><span>'+esc(x.topic)+'</span><span> / </span><strong>'+esc(x.name)+'</strong></div><article class="ndtf-formula"><span class="ndtf-chip">'+esc(x.method)+' · '+esc(x.topic)+'</span><h2>'+esc(x.name)+'</h2><div class="ndtf-equation">'+esc(x.eq)+'</div><p>'+esc(x.explain)+'</p><h3>Variables and units</h3><div class="ndtf-vars">'+(x.vars||[]).map(v=>'<div>'+esc(v)+'</div>').join("")+'</div><h3>Assumptions and limitations</h3><p>'+esc(x.assumptions||"Verify the applicable procedure.")+'</p><h3>Calculator</h3>'+(inputs.length?'<div class="ndtf-fields">'+inputs.map(a=>'<label>'+esc(a[1])+'<input type="number" step="any" data-ndtf-input="'+esc(a[0])+'" value="'+esc(a[2])+'"></label>').join("")+'</div><button class="btn btn-primary" style="margin-top:12px" data-ndtf-calculate>Calculate result</button><div class="ndtf-result" id="ndtf-result" aria-live="polite">Enter values and calculate.</div>':'<p>This formula is conceptual and has no standalone numerical calculator.</p>')+'<h3>Worked example</h3><p>'+esc(x.example||"Use a validated example from the applicable procedure or technical reference.")+'</p><h3>Common mistakes</h3><p>'+esc(x.mistakes||"Check units, assumptions and the limits of the model.")+'</p></article>';
-      const back=host.querySelector("[data-ndtf-back-formula]");if(back)back.addEventListener("click",()=>{selectedFormula=null;renderContent(host);});
+      host.innerHTML='<div class="ndtf-crumb"><button data-ndtf-back-formula>← Back to '+esc(selectedTopic||selectedMethod||"methods")+'</button><span> / </span><span>'+esc(x.topic)+'</span><span> / </span><strong>'+esc(x.name)+'</strong></div><article class="ndtf-formula"><span class="ndtf-chip">'+esc(x.method)+' · '+esc(x.topic)+'</span><h2>'+esc(x.name)+'</h2><div class="ndtf-equation">'+esc(x.eq)+'</div>'+workedMarkup(x)+'<p>'+esc(x.explain)+'</p><h3>Variables and units</h3><div class="ndtf-vars">'+(x.vars||[]).map(v=>'<div>'+esc(v)+'</div>').join("")+'</div><h3>Assumptions and limitations</h3><p>'+esc(x.assumptions||"Verify the applicable procedure.")+'</p><h3>Calculator</h3>'+(inputs.length?'<div class="ndtf-fields">'+inputs.map(a=>'<label>'+esc(a[1])+'<input type="number" step="any" data-ndtf-input="'+esc(a[0])+'" value="'+esc(a[2])+'"></label>').join("")+'</div><button class="btn btn-primary" style="margin-top:12px" data-ndtf-calculate>Calculate result</button><div class="ndtf-result" id="ndtf-result" aria-live="polite">Enter values and calculate.</div>':'<p>This formula is conceptual and has no standalone numerical calculator.</p>')+'<h3>Worked example</h3><p>'+esc(x.example||"Use a validated example from the applicable procedure or technical reference.")+'</p><h3>Common mistakes</h3><p>'+esc(x.mistakes||"Check units, assumptions and the limits of the model.")+'</p></article>';
+      const back=host.querySelector("[data-ndtf-back-formula]");if(back)back.addEventListener("click",ev=>{ev.preventDefault();ev.stopPropagation();selectedFormula=null;renderContent(host);});
       const calc=host.querySelector("[data-ndtf-calculate]");if(calc)calc.addEventListener("click",()=>{
         const values={};let bad=false;inputs.forEach(a=>{const el=host.querySelector('[data-ndtf-input="'+a[0]+'"]');values[a[0]]=el?Number(el.value):NaN;if(!Number.isFinite(values[a[0]]))bad=true;});
         const out=host.querySelector("#ndtf-result");if(bad){out.textContent="Enter a valid number in every field.";return;}
@@ -108,7 +125,7 @@
     if(selectedTopic && selectedMethod){
       const items=F.filter(x=>matchesMethod(x,selectedMethod)&&x.topic===selectedTopic&&(!q||(x.name+" "+x.eq+" "+x.explain).toLowerCase().includes(q)));
       host.innerHTML='<div class="ndtf-crumb"><button data-ndtf-back-topics>← Back to '+esc(methods.find(m=>m[0]===selectedMethod)?.[1]||selectedMethod)+'</button><span> / </span><strong>'+esc(selectedTopic)+'</strong></div><h2>'+esc(selectedTopic)+'</h2><p>Choose a formula to see its variables, assumptions, worked example and interactive calculator.</p><div class="ndtf-formula-grid">'+(items.length?items.map(formulaCard).join(""):'<div class="ndtf-empty">No formulas match this topic search.</div>')+'</div>';
-      host.querySelector("[data-ndtf-back-topics]").addEventListener("click",()=>{selectedTopic=null;renderContent(host);});
+      host.querySelector("[data-ndtf-back-topics]").addEventListener("click",ev=>{ev.preventDefault();ev.stopPropagation();selectedTopic=null;selectedFormula=null;renderContent(host);});
       host.querySelectorAll("[data-ndtf-open]").forEach(btn=>btn.addEventListener("click",()=>{selectedFormula=F.find(x=>x.id===btn.getAttribute("data-ndtf-open"));renderContent(host);}));
       return;
     }
@@ -124,6 +141,6 @@
     host.querySelectorAll("[data-ndtf-method]").forEach(btn=>btn.addEventListener("click",()=>{selectedMethod=btn.getAttribute("data-ndtf-method");selectedTopic=null;selectedFormula=null;renderContent(host);}));
     host.querySelectorAll("[data-ndtf-open]").forEach(btn=>btn.addEventListener("click",()=>{selectedFormula=F.find(x=>x.id===btn.getAttribute("data-ndtf-open"));selectedMethod=selectedFormula.method.split(" / ")[0];renderContent(host);}));
   }
-  function formulaCard(x){return '<article class="ndtf-formula"><span class="ndtf-chip">'+esc(x.method)+' · '+esc(x.topic)+'</span><h3>'+esc(x.name)+'</h3><div class="ndtf-equation">'+esc(x.eq)+'</div><p>'+esc(x.explain)+'</p><button class="btn btn-outline" data-ndtf-open="'+esc(x.id)+'">Open formula & calculator →</button></article>';}
+  function formulaCard(x){return '<article class="ndtf-formula"><span class="ndtf-chip">'+esc(x.method)+' · '+esc(x.topic)+'</span><h3>'+esc(x.name)+'</h3><div class="ndtf-equation">'+esc(x.eq)+'</div>'+workedMarkup(x)+'<p>'+esc(x.explain)+'</p><button class="btn btn-outline" data-ndtf-open="'+esc(x.id)+'">Open formula & calculator →</button></article>';}
   window.NDTFormulaLibrary = {render:render, formulas:F};
 })();
