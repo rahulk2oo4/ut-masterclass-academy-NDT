@@ -1,4 +1,4 @@
-/* UT Masterclass Academy — interactive, method-wise NDT formula library.
+/* NDT Masterclass Academy — interactive, method-wise NDT formula library.
    Educational calculations only. Validate equations and assumptions against the applicable procedure/standard. */
 (function () {
   "use strict";
