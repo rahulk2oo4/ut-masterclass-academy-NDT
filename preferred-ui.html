@@ -261,4 +261,99 @@ draw(library[0].id,"v");
 })();
 </script>
 
+
+<script>
+/* UT Unit Conversion workspace */
+(function(){
+  const nav=document.getElementById('learningNav');
+  if(nav && !document.querySelector('[data-page="unit-conversion"]')){
+    const b=document.createElement('button'); b.dataset.page='unit-conversion'; b.innerHTML='<span class="ico">⇄</span>Unit conversion';
+    const formulaBtn=nav.querySelector('[data-page="formulas"]');
+    if(formulaBtn && formulaBtn.nextSibling) nav.insertBefore(b,formulaBtn.nextSibling); else nav.appendChild(b);
+    b.addEventListener('click',()=>go('unit-conversion'));
+  }
+  const baseGo=go;
+  go=function(page){
+    if(page==='unit-conversion'){
+      document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+      document.getElementById('crumb').textContent='Unit conversion';
+      unitConversionPage(); window.scrollTo({top:0,behavior:'smooth'}); return;
+    }
+    baseGo(page);
+  };
+  const groups=[
+    {id:'frequency',name:'Frequency',units:[['Hz',1],['kHz',1e3],['MHz',1e6]],kind:'linear',desc:'Used for probe frequency and instrument settings.'},
+    {id:'wavelength',name:'Wavelength',units:[['m',1],['cm',.01],['mm',.001],['µm',1e-6]],kind:'linear',desc:'Used with sound velocity and frequency.'},
+    {id:'velocity',name:'Sound velocity',units:[['m/s',1],['mm/µs',1000],['km/s',1000]],kind:'linear',desc:'Note: 1 mm/µs equals 1000 m/s, which equals 1 km/s.'},
+    {id:'time',name:'Time / time of flight',units:[['s',1],['ms',1e-3],['µs',1e-6],['ns',1e-9]],kind:'linear',desc:'For ultrasonic transit time and TOF measurements.'},
+    {id:'distance',name:'Distance / thickness',units:[['m',1],['cm',.01],['mm',.001],['µm',1e-6],['inch',.0254]],kind:'linear',desc:'For wall thickness, sound path and dimensions.'},
+    {id:'angle',name:'Angle',units:[['degrees',1],['radians',Math.PI/180]],kind:'angle',desc:'Angles are converted using degrees and radians.'},
+    {id:'db',name:'Decibels ↔ amplitude ratio',units:[['dB',1],['amplitude ratio',1]],kind:'db',desc:'Amplitude ratio is relative to a reference amplitude; dB = 20 log₁₀(ratio).'},
+    {id:'fsh',name:'Amplitude / screen height',units:[['decimal ratio',1],['% FSH',.01]],kind:'linear',desc:'Example: 0.8 decimal ratio equals 80% FSH.'},
+    {id:'gain',name:'Gain change ↔ amplitude ratio',units:[['dB change',1],['amplitude ratio',1]],kind:'gain',desc:'For amplitude ratios: ratio = 10^(dB change / 20).'},
+    {id:'period',name:'Frequency ↔ period',units:[['Hz',1],['kHz',1e3],['MHz',1e6],['s',1],['ms',1e-3],['µs',1e-6],['ns',1e-9]],kind:'period',desc:'Frequency and period are reciprocals. Select a frequency unit on the source and a time unit on the target, or vice versa.'},
+    {id:'path',name:'Sound path ↔ depth',units:[['mm',1],['cm',10],['m',1000]],kind:'path',desc:'For angle-beam UT, assumes refracted angle measured from the normal. Depth = beam path × cos(angle).'},
+    {id:'metric',name:'Metric ↔ imperial dimensions',units:[['mm',1],['inch',25.4],['mm²',1],['inch²',645.16]],kind:'metric',desc:'Choose length units for length conversions and area units for area conversions.'}
+  ];
+  function unitConversionPage(){
+    const view=document.getElementById('view');
+    view.innerHTML='<div class="page-head"><h1 class="page-title">Unit Conversion</h1><p class="page-desc">UT-focused converters for frequency, wavelength, sound velocity, time of flight, dimensions, angle, amplitude, dB, gain and beam geometry.</p></div><div class="panel" style="max-width:1050px;margin:20px auto;background:white;border:1px solid var(--line);border-radius:20px;padding:24px"><label class="field-label" for="utConvType">1. Choose conversion</label><select id="utConvType" class="btn" style="display:block;width:100%;margin:8px 0 20px">'+groups.map(g=>'<option value="'+g.id+'">'+g.name+'</option>').join('')+'</select><div id="utConvDescription" class="page-desc"></div><div id="utConvFields" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px"></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px"><button class="btn primary" id="utConvert">Convert</button><button class="btn" id="utSwap">Swap units</button><button class="btn" id="utClear">Clear</button></div><div id="utConvResult" aria-live="polite" style="margin-top:20px"></div></div><div class="lesson-body" style="max-width:1050px;margin:20px auto"><h3 style="margin-top:0">Conversion notes</h3><p>For sound velocity, 1 mm/µs = 1000 m/s. For pulse-echo thickness calculations, the measured time is normally round-trip time, so thickness = velocity × time ÷ 2. The sound-path/depth converter uses the angle from the normal; verify the angle convention used by your instrument or procedure.</p></div>';
+    const type=document.getElementById('utConvType'),fields=document.getElementById('utConvFields'),result=document.getElementById('utConvResult'),desc=document.getElementById('utConvDescription');
+    function draw(){
+      const g=groups.find(x=>x.id===type.value); desc.textContent=g.desc;
+      let units=g.units;
+      if(g.kind==='period') units=[['Hz',1],['kHz',1e3],['MHz',1e6],['s',1],['ms',1e-3],['µs',1e-6],['ns',1e-9]];
+      fields.innerHTML='<label style="display:block;font-weight:700">Value<input id="utConvValue" type="number" step="any" placeholder="Enter value" style="display:block;width:100%;padding:13px;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink)"></label><label style="display:block;font-weight:700">From unit<select id="utConvFrom" class="btn" style="display:block;width:100%;margin-top:8px">'+units.map((u,i)=>'<option value="'+i+'">'+u[0]+'</option>').join('')+'</select></label><label style="display:block;font-weight:700">To unit<select id="utConvTo" class="btn" style="display:block;width:100%;margin-top:8px">'+units.map((u,i)=>'<option value="'+i+'" '+(i===1?'selected':'')+'>'+u[0]+'</option>').join('')+'</select></label>';
+      if(g.kind==='path') fields.innerHTML+='<label style="display:block;font-weight:700">Refracted angle (degrees)<input id="utConvAngle" type="number" step="any" value="45" style="display:block;width:100%;padding:13px;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink)"></label>';
+      if(g.kind==='period') fields.innerHTML+='<p class="page-desc" style="grid-column:1/-1">Select Hz/kHz/MHz to convert frequency into s/ms/µs/ns (or select a time unit to convert period into frequency).</p>';
+      result.innerHTML='';
+    }
+    function convert(){
+      const g=groups.find(x=>x.id===type.value),value=Number(document.getElementById('utConvValue').value),from=document.getElementById('utConvFrom'),to=document.getElementById('utConvTo'),a=g.units[Number(from.value)],b=g.units[Number(to.value)];
+      if(document.getElementById('utConvValue').value===''||!Number.isFinite(value)){result.innerHTML='<div class="notice">Enter a valid numeric value.</div>';return}
+      let answer,explain='';
+      if(g.kind==='db'){
+        if(a[0]==='dB'&&b[0]==='amplitude ratio'){answer=Math.pow(10,value/20);explain='Amplitude ratio = 10^(dB ÷ 20).'}
+        else if(a[0]==='amplitude ratio'&&b[0]==='dB'){if(value<=0){result.innerHTML='<div class="notice">Amplitude ratio must be greater than zero to convert to dB.</div>';return}answer=20*Math.log10(value);explain='dB = 20 log₁₀(amplitude ratio).'}
+        else answer=value;
+      } else if(g.kind==='gain'){
+        if(a[0]==='dB change'&&b[0]==='amplitude ratio'){answer=Math.pow(10,value/20);explain='Amplitude ratio = 10^(dB change ÷ 20).'}
+        else if(a[0]==='amplitude ratio'&&b[0]==='dB change'){if(value<=0){result.innerHTML='<div class="notice">Amplitude ratio must be greater than zero.</div>';return}answer=20*Math.log10(value);explain='dB change = 20 log₁₀(amplitude ratio).'}
+        else answer=value;
+      } else if(g.kind==='angle'){
+        answer=a[0]==='degrees'&&b[0]==='radians'?value*Math.PI/180:value*180/Math.PI;
+      } else if(g.kind==='period'){
+        const isFreq=['Hz','kHz','MHz'].includes(a[0]),toFreq=['Hz','kHz','MHz'].includes(b[0]);
+        if(isFreq===toFreq){result.innerHTML='<div class="notice">Choose a frequency unit as one unit and a time unit as the other.</div>';return}
+        const hz=isFreq?value*a[1]:1/(value*a[1]);
+        if(!Number.isFinite(hz)||hz<=0){result.innerHTML='<div class="notice">Frequency and period must be greater than zero.</div>';return}
+        answer=toFreq?hz/b[1]:(1/hz)/b[1];explain='Period = 1 ÷ frequency; frequency = 1 ÷ period.';
+      } else if(g.kind==='path'){
+        const angle=Number(document.getElementById('utConvAngle').value);
+        if(!Number.isFinite(angle)||angle<0||angle>=90){result.innerHTML='<div class="notice">Enter an angle from 0° up to but not including 90°.</div>';return}
+        const mm=value*a[1],rad=angle*Math.PI/180;
+        if(a[0]==='mm'&&b[0]==='mm') answer=mm*Math.cos(rad);
+        else if(a[0]==='mm'&&b[0]!=='mm') answer=(mm*Math.cos(rad))/b[1];
+        else { // Reverse depth to beam path
+          const depth=value*a[1]; answer=(depth/Math.cos(rad))/b[1];
+        }
+        explain='Depth = beam path × cos(angle); beam path = depth ÷ cos(angle). Angle is measured from the normal.';
+      } else if(g.kind==='metric'){
+        const areaA=a[0].includes('²'),areaB=b[0].includes('²');
+        if(areaA!==areaB){result.innerHTML='<div class="notice">Choose length units together (mm/inch) or area units together (mm²/inch²).</div>';return}
+        answer=value*a[1]/b[1];
+      } else {
+        answer=value*a[1]/b[1];
+      }
+      if(!Number.isFinite(answer)){result.innerHTML='<div class="notice">This conversion cannot be calculated. Check the value and selected units.</div>';return}
+      result.innerHTML='<div class="notice" style="padding:20px"><div class="method-tag">CONVERSION RESULT</div><h2 style="margin:8px 0;font-size:28px">'+answer.toPrecision(8).replace(/(?:\.0+|(?:(\.\d*?)0+))$/,'$1')+' '+b[0]+'</h2><p>'+explain+'</p></div>';
+    }
+    document.getElementById('utConvert').onclick=convert;
+    document.getElementById('utSwap').onclick=()=>{const a=document.getElementById('utConvFrom'),b=document.getElementById('utConvTo'),old=a.value;a.value=b.value;b.value=old;result.innerHTML='';};
+    document.getElementById('utClear').onclick=()=>{document.getElementById('utConvValue').value='';result.innerHTML='';};
+    type.onchange=draw; draw();
+  }
+})();
+</script>
+
 </body></html>
