@@ -25,6 +25,7 @@ jobs:
       - name: Validate required files
         run: |
           test -f index.html
+          test -f preferred-ui.html
           test -f method-exam-ui.js
           test -f legacy.html
           test -f academy.css
@@ -63,7 +64,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site/supabase/migrations
-          cp index.html method-exam-ui.js legacy.html academy.css academy-data.js academy-app.js supabase-config.js formula-library.js ndt-formula-library.js academy-sections.js admin-dashboard.js certificate.html verify-certificate.html .nojekyll _site/
+          cp index.html preferred-ui.html method-exam-ui.js legacy.html academy.css academy-data.js academy-app.js supabase-config.js formula-library.js ndt-formula-library.js academy-sections.js admin-dashboard.js certificate.html verify-certificate.html .nojekyll _site/
           cp supabase/schema.sql supabase/seed.sql _site/supabase/
           cp supabase/migrations/*.sql _site/supabase/migrations/
           cp README.md _site/README.md
