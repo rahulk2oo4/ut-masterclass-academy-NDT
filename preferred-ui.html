@@ -53,8 +53,9 @@ const lessonText={
 "Instrument controls and calibration":"Calibration establishes the relationship between instrument indications and known reference distances or responses. Verify range, zero, velocity and sensitivity with suitable reference blocks and documented procedures. Calibration must represent the inspection geometry and applicable code or specification.",
 "A-scan interpretation":"An A-scan displays signal amplitude against time or sound path. The initial pulse, back-wall response and intermediate indications are interpreted using calibrated range, expected geometry and scan movement. Amplitude alone does not identify defect type; evaluation requires context and procedure requirements."
 };
-let completed=JSON.parse(localStorage.getItem("ndtAcademyCompleted")||"[]");
-let certificates=JSON.parse(localStorage.getItem("ndtAcademyCertificates")||"[]");
+function safeLoadArray(key){try{const value=JSON.parse(localStorage.getItem(key)||"[]");return Array.isArray(value)?value:[]}catch(error){console.warn("Resetting invalid academy storage:",key,error);return []}}
+let completed=safeLoadArray("ndtAcademyCompleted");
+let certificates=safeLoadArray("ndtAcademyCertificates");
 let learner=localStorage.getItem("ndtAcademyName")||"Rahul";
 let currentMethod=0,currentLesson="",examQuestions=[],examAnswers={};
 const view=document.getElementById("view");
@@ -177,7 +178,8 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":
 document.getElementById("setName").onclick=()=>{const n=prompt("Enter the learner name for your learning records:",learner);if(n&&n.trim()){learner=n.trim();localStorage.setItem("ndtAcademyName",learner);updateProfile();showCertificates()}};
 function updateProfile(){document.getElementById("userName").textContent=learner;document.getElementById("avatar").textContent=learner.charAt(0).toUpperCase()}
 document.getElementById("signOut").onclick=()=>{if(confirm("Clear this browser's learner name and return to the dashboard? Your lesson progress will be kept.")){learner="Learner";localStorage.setItem("ndtAcademyName",learner);updateProfile();go("dashboard")}};
-updateProfile();dashboard();
+updateProfile();
+try{dashboard()}catch(error){console.error("Academy dashboard failed to render:",error);view.innerHTML='<section class="lesson-body"><h1 class="page-title">Dashboard could not load</h1><p>The academy encountered a browser-side error while rendering this page.</p><p style="color:#887a7b">Try refreshing. If the issue continues, open the browser console and share the error details.</p><button class="btn primary" onclick="location.reload()">Reload academy</button></section>'}
 </script>
 
 <script>
