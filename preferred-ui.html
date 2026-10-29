@@ -184,4 +184,81 @@ formulas=function(){
 })();
 </script>
 
+
+<script>
+/* Replace the multi-card formula page with one formula / one interactive rearrangement workspace. */
+(function(){
+const unitSets={
+f:[["Hz",1],["kHz",1e3],["MHz",1e6]],
+l:[["m",1],["cm",.01],["mm",.001],["µm",1e-6]],
+v:[["m/s",1],["km/s",1e3],["mm/s",.001],["mm/µs",1000]],
+t:[["s",1],["ms",1e-3],["µs",1e-6],["ns",1e-9]],
+d:[["m",1],["cm",.01],["mm",.001]],
+a:[["relative amplitude",1],["% FSH",.01]],
+db:[["dB",1]],n:[["dimensionless",1]]
+};
+const library=[
+{id:"wave",cat:"UT Fundamentals",name:"Wave relationship",equation:"v = f × λ",desc:"Relates sound velocity, frequency and wavelength.",vars:[
+{id:"v",label:"Velocity",unit:"v",base:"m/s",defaultUnit:"m/s",factor:1},
+{id:"f",label:"Frequency",unit:"f",base:"Hz",defaultUnit:"MHz",factor:1},
+{id:"l",label:"Wavelength",unit:"l",base:"m",defaultUnit:"mm",factor:1}
+],solve:{v:x=>x.f*x.l,f:x=>x.v/x.l,l:x=>x.v/x.f},forms:{v:"v = f × λ",f:"f = v ÷ λ",l:"λ = v ÷ f"},example:{known:{f:5,l:0.6},units:{f:"MHz",l:"mm"},unknown:"v"}},
+{id:"thickness",cat:"UT Fundamentals",name:"Pulse-echo distance / thickness",equation:"d = (v × t) ÷ 2",desc:"Use round-trip pulse-echo time. The factor of 2 accounts for the outgoing and returning path.",vars:[
+{id:"d",label:"Distance / thickness",unit:"d",base:"m",defaultUnit:"mm",factor:1},
+{id:"v",label:"Sound velocity",unit:"v",base:"m/s",defaultUnit:"m/s",factor:1},
+{id:"t",label:"Round-trip time",unit:"t",base:"s",defaultUnit:"µs",factor:1}
+],solve:{d:x=>x.v*x.t/2,v:x=>2*x.d/x.t,t:x=>2*x.d/x.v},forms:{d:"d = (v × t) ÷ 2",v:"v = (2 × d) ÷ t",t:"t = (2 × d) ÷ v"}},
+{id:"period",cat:"UT Fundamentals",name:"Frequency and period",equation:"T = 1 ÷ f",desc:"Frequency and period are reciprocals.",vars:[
+{id:"T",label:"Period",unit:"t",base:"s",defaultUnit:"µs",factor:1},
+{id:"f",label:"Frequency",unit:"f",base:"Hz",defaultUnit:"MHz",factor:1}
+],solve:{T:x=>1/x.f,f:x=>1/x.T},forms:{T:"T = 1 ÷ f",f:"f = 1 ÷ T"}},
+{id:"nearfield",cat:"UT Beam",name:"Approximate near-field length",equation:"N ≈ D² ÷ (4 × λ)",desc:"Approximation for a circular piston in a uniform medium.",vars:[
+{id:"N",label:"Near-field length",unit:"l",base:"m",defaultUnit:"mm",factor:1},
+{id:"D",label:"Probe diameter",unit:"l",base:"m",defaultUnit:"mm",factor:1},
+{id:"l",label:"Wavelength",unit:"l",base:"m",defaultUnit:"mm",factor:1}
+],solve:{N:x=>x.D*x.D/(4*x.l),D:x=>Math.sqrt(4*x.N*x.l),l:x=>x.D*x.D/(4*x.N)},forms:{N:"N ≈ D² ÷ (4λ)",D:"D ≈ √(4Nλ)",l:"λ ≈ D² ÷ (4N)"}},
+{id:"db",cat:"UT Signal",name:"Amplitude ratio and decibels",equation:"ΔdB = 20 log₁₀(A₂ ÷ A₁)",desc:"For amplitude ratios measured on the same scale.",vars:[
+{id:"db",label:"Amplitude change",unit:"db",base:"dB",defaultUnit:"dB",factor:1},
+{id:"A1",label:"Initial amplitude",unit:"a",base:"relative amplitude",defaultUnit:"relative amplitude",factor:1},
+{id:"A2",label:"Final amplitude",unit:"a",base:"relative amplitude",defaultUnit:"relative amplitude",factor:1}
+],solve:{db:x=>20*Math.log10(x.A2/x.A1),A2:x=>x.A1*Math.pow(10,x.db/20),A1:x=>x.A2/Math.pow(10,x.db/20)},forms:{db:"ΔdB = 20 log₁₀(A₂ ÷ A₁)",A2:"A₂ = A₁ × 10^(ΔdB ÷ 20)",A1:"A₁ = A₂ ÷ 10^(ΔdB ÷ 20)"}},
+{id:"inverse",cat:"Radiography",name:"Inverse-square intensity",equation:"I₂ = I₁ × (r₁ ÷ r₂)²",desc:"Point-source approximation for intensity versus distance.",vars:[
+{id:"I2",label:"New intensity",unit:"n",base:"relative",defaultUnit:"dimensionless",factor:1},
+{id:"I1",label:"Initial intensity",unit:"n",base:"relative",defaultUnit:"dimensionless",factor:1},
+{id:"r1",label:"Initial distance",unit:"l",base:"m",defaultUnit:"m",factor:1},
+{id:"r2",label:"New distance",unit:"l",base:"m",defaultUnit:"m",factor:1}
+],solve:{I2:x=>x.I1*(x.r1/x.r2)**2,I1:x=>x.I2*(x.r2/x.r1)**2,r1:x=>x.r2*Math.sqrt(x.I2/x.I1),r2:x=>x.r1*Math.sqrt(x.I1/x.I2)},forms:{I2:"I₂ = I₁ × (r₁ ÷ r₂)²",I1:"I₁ = I₂ ÷ (r₁ ÷ r₂)²",r1:"r₁ = r₂ × √(I₂ ÷ I₁)",r2:"r₂ = r₁ × √(I₁ ÷ I₂)"}}
+];
+window.formulas=function(){
+view.innerHTML='<div class="page-head"><div><h1 class="page-title">Formula Library</h1><p class="page-desc">One formula at a time. Choose the formula, select what you know, select the unknown, and solve with unit conversion.</p></div></div><div class="formula-workspace" style="max-width:1000px;margin:24px auto"><div class="panel" style="padding:24px"><label class="field-label" for="oneFormula">1. Choose a formula</label><select id="oneFormula" class="btn" style="display:block;width:100%;text-align:left;margin:8px 0 20px">'+library.map(f=>'<option value="'+f.id+'">'+f.cat+' — '+f.name+'</option>').join("")+'</select><div id="oneFormulaBody"></div></div></div>';
+const body=document.getElementById("oneFormulaBody");
+function draw(id,preset){
+const f=library.find(x=>x.id===id)||library[0];const selected=preset||f.vars[f.vars.length-1].id;
+body.innerHTML='<div style="background:var(--warm,#FFF8F3);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px"><div class="method-tag">'+f.cat.toUpperCase()+'</div><h2 style="margin:8px 0 6px">'+f.name+'</h2><p class="page-desc">'+f.desc+'</p><div class="formula" style="font-size:25px;margin:16px 0">'+f.equation+'</div></div><label class="field-label" for="unknownOne">2. What value do you want to find?</label><select id="unknownOne" class="btn" style="display:block;width:100%;text-align:left;margin:8px 0 18px">'+f.vars.map(v=>'<option value="'+v.id+'" '+(v.id===selected?'selected':'')+'>Find '+v.label+'</option>').join("")+'</select><div id="knownInputs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px"></div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px"><button class="btn primary" id="solveOne">Calculate unknown</button><button class="btn" id="exampleOne">Load example</button><button class="btn" id="resetOne">Reset values</button></div><div id="oneResult" style="margin-top:18px"></div><p class="page-desc" style="margin-top:18px">Unit conversion is applied before calculation. Use material-appropriate values and verify the formula assumptions against your procedure.</p>';
+const unknown=document.getElementById("unknownOne"),inputs=document.getElementById("knownInputs");
+function drawInputs(){const u=unknown.value;inputs.innerHTML=f.vars.filter(v=>v.id!==u).map(v=>'<label style="display:block;border:1px solid var(--line);border-radius:12px;padding:12px"><span style="font-weight:700;color:var(--ink)">'+v.label+' <span style="font-weight:400;color:var(--muted)">('+v.id+')</span></span><input id="value_'+v.id+'" type="number" step="any" placeholder="Enter known value" style="display:block;width:100%;padding:11px;margin-top:8px;border:1px solid var(--line);border-radius:8px;background:white;color:#24151A"><select id="unit_'+v.id+'" style="display:block;width:100%;padding:10px;margin-top:8px;border:1px solid var(--line);border-radius:8px;background:white;color:#24151A">'+(unitSets[v.unit]||unitSets.n).map(u=>'<option value="'+u[1]+'" '+(u[0]===v.defaultUnit?'selected':'')+'>'+u[0]+'</option>').join("")+'</select></label>').join("");document.getElementById("oneResult").innerHTML=""}
+unknown.onchange=drawInputs;drawInputs();
+document.getElementById("solveOne").onclick=()=>{
+const u=unknown.value,x={},missing=[];
+f.vars.filter(v=>v.id!==u).forEach(v=>{const raw=document.getElementById("value_"+v.id).value;if(raw===""||!Number.isFinite(Number(raw))){missing.push(v.label);return}x[v.id]=Number(raw)*Number(document.getElementById("unit_"+v.id).value)});
+const out=document.getElementById("oneResult");if(missing.length){out.innerHTML='<div class="notice">Please enter all known values: '+missing.join(", ")+'.</div>';return}
+if(Object.values(x).some(n=>!Number.isFinite(n))){out.innerHTML='<div class="notice">Check your inputs and units.</div>';return}
+const ans=f.solve[u](x);if(!Number.isFinite(ans)){out.innerHTML='<div class="notice">Cannot calculate this result. Check for zero values or values outside the formula assumptions.</div>';return}
+const target=f.vars.find(v=>v.id===u);
+out.innerHTML='<div class="notice" style="padding:20px"><div class="method-tag">CALCULATION RESULT</div><h2 style="margin:8px 0"> '+target.label+' = '+formatNum(ans/Number((()=>{const select=document.getElementById("outUnit");return select?select.value:1})()))+'</h2><div style="margin-top:12px"><label for="outUnit" class="field-label">Result unit</label><select id="outUnit" class="btn" style="display:block;width:100%;margin-top:6px">'+(unitSets[target.unit]||unitSets.n).map(q=>'<option value="'+q[1]+'" '+(q[0]===target.defaultUnit?'selected':'')+'>'+q[0]+'</option>').join("")+'</select></div><p style="margin-top:14px"><b>Rearranged formula</b><br><span style="font-size:20px">'+f.forms[u]+'</span></p><p><b>Known values used</b><br>'+f.vars.filter(v=>v.id!==u).map(v=>v.label+': '+document.getElementById("value_"+v.id).value+' '+document.getElementById("unit_"+v.id).selectedOptions[0].text).join("<br>")+'</p><p><b>Working</b><br>1. Convert known values to base units.<br>2. Rearrange the selected formula to isolate '+target.label+'.<br>3. Substitute known values and calculate.<br>4. Convert the answer to your selected result unit.</p></div>';
+const result=document.getElementById("oneResult"),unit=document.getElementById("outUnit"),paint=()=>{result.querySelector("h2").textContent=target.label+" = "+formatNum(ans/Number(unit.value))+" "+unit.selectedOptions[0].text};paint();unit.onchange=paint;
+};
+document.getElementById("exampleOne").onclick=()=>{
+const example=f.example;if(!example){const u=unknown.value;const vars=f.vars.filter(v=>v.id!==u);vars.forEach((v,i)=>{document.getElementById("value_"+v.id).value=([2,10,1][i]||1);});document.getElementById("oneResult").innerHTML='<div class="notice">Example values loaded. Review the values and units, then calculate.</div>';return}
+unknown.value=example.unknown;drawInputs();Object.entries(example.known).forEach(([k,val])=>{const el=document.getElementById("value_"+k);if(el)el.value=val;const us=document.getElementById("unit_"+k);if(us&&example.units[k])us.value=String((unitSets[f.vars.find(v=>v.id===k).unit]||[]).find(u=>u[0]===example.units[k])?.[1]||1)});document.getElementById("oneResult").innerHTML='<div class="notice">Example loaded: Frequency = 5 MHz, wavelength = 0.6 mm. Unknown: velocity. Press <b>Calculate unknown</b> to see the answer and working.</div>';
+};
+document.getElementById("resetOne").onclick=()=>draw(f.id,unknown.value);
+}
+function formatNum(n){if(!Number.isFinite(n))return "—";if(n===0)return "0";return n.toPrecision(7).replace(/(?:\.0+|(?:(\.\d*?)0+))$/,"$1")}
+document.getElementById("oneFormula").onchange=e=>draw(e.target.value);
+draw(library[0].id,"v");
+};
+})();
+</script>
+
 </body></html>
