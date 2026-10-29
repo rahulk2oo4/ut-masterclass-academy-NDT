@@ -136,7 +136,6 @@ function updateSnell(){
 }
 [snI,snV1,snVL,snVS].forEach(el=>el.addEventListener('input',updateSnell));updateSnell();
 const geo=document.getElementById('simGeometry'),dtype=document.getElementById('simDefectType'),dx=document.getElementById('simDefectX'),dy=document.getElementById('simDefectY'),ds=document.getElementById('simDefectSize'),probeSide=document.getElementById('simProbeSide'),probePos=document.getElementById('simProbePos'),probeAngle=document.getElementById('simProbeAngle'),reflectorTilt=document.getElementById('simReflectorTilt'),atten=document.getElementById('simAtten'),coupling=document.getElementById('simCoupling');let specimenTimer=null,ascanFrozen=false,ascanSweepTimer=null;
-let specimenTimer=null,ascanFrozen=false,ascanSweepTimer=null;
 function updateLiveAscan(){
  const velocity=Number(document.getElementById('ascanVel').value),gain=Number(document.getElementById('ascanGain').value),depthPct=Number(dy.value)/100,depthMm=(geo.value==='plate'?100:180)*depthPct;
  const tilt=Number(reflectorTilt.value),angleDeg=Number(probeAngle.value),couple=Number(coupling.value)/100,attenDb=Number(atten.value),size=Number(ds.value);
