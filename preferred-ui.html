@@ -304,7 +304,7 @@ draw(library[0].id,"v");
       let units=g.units;
       if(g.kind==='period') units=[['Hz',1],['kHz',1e3],['MHz',1e6],['s',1],['ms',1e-3],['µs',1e-6],['ns',1e-9]];
       fields.innerHTML='<label style="display:block;font-weight:700">Value<input id="utConvValue" type="number" step="any" placeholder="Enter value" style="display:block;width:100%;padding:13px;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink)"></label><label style="display:block;font-weight:700">From unit<select id="utConvFrom" class="btn" style="display:block;width:100%;margin-top:8px">'+units.map((u,i)=>'<option value="'+i+'">'+u[0]+'</option>').join('')+'</select></label><label style="display:block;font-weight:700">To unit<select id="utConvTo" class="btn" style="display:block;width:100%;margin-top:8px">'+units.map((u,i)=>'<option value="'+i+'" '+(i===1?'selected':'')+'>'+u[0]+'</option>').join('')+'</select></label>';
-      if(g.kind==='path') fields.innerHTML+='<label style="display:block;font-weight:700">Refracted angle (degrees)<input id="utConvAngle" type="number" step="any" value="45" style="display:block;width:100%;padding:13px;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink)"></label>';
+      if(g.kind==='path') fields.innerHTML+='<label style="display:block;font-weight:700">Conversion direction<select id="utPathDirection" class="btn" style="display:block;width:100%;margin-top:8px"><option value="pathToDepth">Beam path → depth</option><option value="depthToPath">Depth → beam path</option></select></label><label style="display:block;font-weight:700">Refracted angle (degrees)<input id="utConvAngle" type="number" step="any" value="45" style="display:block;width:100%;padding:13px;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink)"></label>';
       if(g.kind==='period') fields.innerHTML+='<p class="page-desc" style="grid-column:1/-1">Select Hz/kHz/MHz to convert frequency into s/ms/µs/ns (or select a time unit to convert period into frequency).</p>';
       result.innerHTML='';
     }
@@ -331,13 +331,9 @@ draw(library[0].id,"v");
       } else if(g.kind==='path'){
         const angle=Number(document.getElementById('utConvAngle').value);
         if(!Number.isFinite(angle)||angle<0||angle>=90){result.innerHTML='<div class="notice">Enter an angle from 0° up to but not including 90°.</div>';return}
-        const mm=value*a[1],rad=angle*Math.PI/180;
-        if(a[0]==='mm'&&b[0]==='mm') answer=mm*Math.cos(rad);
-        else if(a[0]==='mm'&&b[0]!=='mm') answer=(mm*Math.cos(rad))/b[1];
-        else { // Reverse depth to beam path
-          const depth=value*a[1]; answer=(depth/Math.cos(rad))/b[1];
-        }
-        explain='Depth = beam path × cos(angle); beam path = depth ÷ cos(angle). Angle is measured from the normal.';
+        const mm=value*a[1],rad=angle*Math.PI/180,direction=document.getElementById('utPathDirection').value;
+        answer=direction==='pathToDepth'?(mm*Math.cos(rad))/b[1]:(mm/Math.cos(rad))/b[1];
+        explain=direction==='pathToDepth'?'Depth = beam path × cos(angle). Angle is measured from the normal.':'Beam path = depth ÷ cos(angle). Angle is measured from the normal.';
       } else if(g.kind==='metric'){
         const areaA=a[0].includes('²'),areaB=b[0].includes('²');
         if(areaA!==areaB){result.innerHTML='<div class="notice">Choose length units together (mm/inch) or area units together (mm²/inch²).</div>';return}
