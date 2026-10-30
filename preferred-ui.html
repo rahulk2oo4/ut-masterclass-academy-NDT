@@ -836,4 +836,23 @@ draw(library[0].id,"v");
 /* Final route guard: after every academy module has initialized, always land on Dashboard. */
 window.addEventListener("load",function(){try{go("dashboard");}catch(error){console.error("Dashboard route guard failed:",error);}});
 </script>
+
+<script>
+/* Keep the Formula Library method selector limited to its individual NDT methods. */
+(function(){
+  function removeAllMethodsTab(){
+    const tabs=document.getElementById('formulaMethodTabs');
+    if(!tabs) return;
+    tabs.querySelectorAll('button,[role="tab"]').forEach(el=>{
+      const label=(el.textContent||'').replace(/\\s+/g,' ').trim().toLowerCase();
+      if(label==='all methods'||label==='all method') el.remove();
+    });
+  }
+  document.addEventListener('DOMContentLoaded',removeAllMethodsTab);
+  window.addEventListener('load',removeAllMethodsTab);
+  const observer=new MutationObserver(removeAllMethodsTab);
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+  setTimeout(()=>observer.disconnect(),15000);
+})();
+</script>
 </body></html>
