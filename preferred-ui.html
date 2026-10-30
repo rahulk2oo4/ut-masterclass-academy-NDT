@@ -519,6 +519,7 @@ const extraLibrary=[
 ];
 library.push(...extraLibrary);
 {
+function renderFormulaWorkspace(){
 view.innerHTML='<div class="page-head"><div><h1 class="page-title">Formula Library</h1><p class="page-desc">14 method categories · Search by formula or application · Select an unknown, enter known values and calculate with unit conversion. Use the method filters to explore the technical reference.</p></div></div><div class="formula-workspace" style="max-width:1000px;margin:24px auto"><div class="panel" style="padding:24px"><label class="field-label" for="oneFormula">1. Choose a formula</label><select id="oneFormula" class="btn" style="display:block;width:100%;text-align:left;margin:8px 0 20px">'+library.map(f=>'<option value="'+f.id+'">'+f.cat+' — '+f.name+'</option>').join("")+'</select><div id="oneFormulaBody"></div></div></div>';
 const body=document.getElementById("oneFormulaBody");
 function draw(id,preset){
@@ -546,7 +547,8 @@ document.getElementById("resetOne").onclick=()=>draw(f.id,unknown.value);
 function formatNum(n){if(!Number.isFinite(n))return "—";if(n===0)return "0";return n.toPrecision(7).replace(/(?:\.0+|(?:(\.\d*?)0+))$/,"$1")}
 document.getElementById("oneFormula").onchange=e=>draw(e.target.value);
 draw(library[0].id,"v");
-};
+}
+formulas=renderFormulaWorkspace;
 })();
 </script>
 
