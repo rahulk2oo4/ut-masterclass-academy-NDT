@@ -251,7 +251,7 @@ document.getElementById("setName").onclick=()=>{const n=prompt("Enter the learne
 function updateProfile(){document.getElementById("userName").textContent=learner;document.getElementById("avatar").textContent=learner.charAt(0).toUpperCase()}
 document.getElementById("signOut").onclick=()=>{if(confirm("Clear this browser's learner name and return to the dashboard? Your lesson progress will be kept.")){learner="Learner";localStorage.setItem("ndtAcademyName",learner);updateProfile();go("dashboard")}};
 updateProfile();
-try{go("about")}catch(error){console.error("Academy dashboard failed to render:",error);view.innerHTML='<section class="lesson-body"><h1 class="page-title">Dashboard could not load</h1><p>The academy encountered a browser-side error while rendering this page.</p><p style="color:#887a7b">Try refreshing. If the issue continues, open the browser console and share the error details.</p><button class="btn primary" onclick="location.reload()">Reload academy</button></section>'}
+try{go("dashboard")}catch(error){console.error("Academy dashboard failed to render:",error);view.innerHTML='<section class="lesson-body"><h1 class="page-title">Dashboard could not load</h1><p>The academy encountered a browser-side error while rendering this page.</p><p style="color:#887a7b">Try refreshing. If the issue continues, open the browser console and share the error details.</p><button class="btn primary" onclick="location.reload()">Reload academy</button></section>'}
 </script>
 
 <script>
