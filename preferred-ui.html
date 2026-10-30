@@ -643,4 +643,9 @@ formulas=renderFormulaWorkspace;
 })();
 </script>
 
+
+<script>
+/* Final route guard: after every academy module has initialized, always land on Dashboard. */
+window.addEventListener("load",function(){try{go("dashboard");}catch(error){console.error("Dashboard route guard failed:",error);}});
+</script>
 </body></html>
