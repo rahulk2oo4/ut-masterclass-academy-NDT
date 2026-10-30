@@ -358,6 +358,7 @@ const library=[
 {id:"r1",label:"Initial distance",unit:"l",base:"m",defaultUnit:"m",factor:1},
 {id:"r2",label:"New distance",unit:"l",base:"m",defaultUnit:"m",factor:1}
 ],solve:{I2:x=>x.I1*(x.r1/x.r2)**2,I1:x=>x.I2*(x.r2/x.r1)**2,r1:x=>x.r2*Math.sqrt(x.I2/x.I1),r2:x=>x.r1*Math.sqrt(x.I1/x.I2)},forms:{I2:"I₂ = I₁ × (r₁ ÷ r₂)²",I1:"I₁ = I₂ ÷ (r₁ ÷ r₂)²",r1:"r₁ = r₂ × √(I₂ ÷ I₁)",r2:"r₂ = r₁ × √(I₁ ÷ I₂)"}}
+];
 
 /* Expanded NDT engineering formula catalogue. All calculator entries use SI base-unit conversion. */
 const extraLibrary=[
