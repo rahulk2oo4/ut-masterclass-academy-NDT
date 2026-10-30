@@ -657,25 +657,12 @@ formulas=function(){
  const ix=Number(b.dataset.info),f=items[ix],panel=document.getElementById("formulaInfo"+ix);
  if(!f||!panel)return;
  if(!panel.hidden){panel.hidden=true;b.setAttribute("aria-expanded","false");return}
- const method=(f.cat||"NDT").replace(/\\s*\\([^)]*\\)/g,"");
- const vars=Array.isArray(f.vars)?f.vars:[];
- const variableRows=vars.map(v=>'<li style="margin:5px 0"><b>'+v[1]+'</b> (<code>'+v[0]+'</code>)'+(v[2]?' — unit type: '+v[2]:'')+'</li>').join("");
- const hint=f.hint||(f.legacy&&f.legacy.desc)||"Use the relationship with the measured or specified quantities represented by the variables.";
  const equation=f.eq||"See the formula shown on the card.";
  const application=inspectionUseCase(f);
- const steps=vars.length
-  ? "1. Identify the quantity you need to determine. 2. Select that quantity in the calculator. 3. Enter the other known values using consistent units. 4. Calculate and review the result, units and assumptions."
-  : "Identify the measured quantities represented in the equation, use consistent units, substitute the known values and evaluate the result.";
- const notes=f.legacy?"Use the unit-aware solver for the available calculation.":hint;
  panel.innerHTML='<div style="margin:10px 0 14px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--warm,#FFF8F3)">'+
- '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="color:var(--maroon,#4A1020)">Detailed formula explanation</b><button type="button" data-close-info="'+ix+'" aria-label="Close formula explanation" style="border:0;background:transparent;font-size:20px;cursor:pointer">×</button></div>'+
- '<p style="margin:12px 0 4px"><b>Formula</b></p><div style="font-size:19px;font-weight:800;color:var(--wine,#571629);padding:9px 0">'+equation+'</div>'+
- '<p style="margin:8px 0 4px"><b>What it represents</b></p><p style="margin:0;line-height:1.7">'+hint+'</p>'+
- '<p style="margin:12px 0 4px"><b>When you use it during inspection</b></p><p style="margin:0;line-height:1.7">'+application+'</p>'+
- (vars.length?'<p style="margin:12px 0 4px"><b>Meaning of each variable</b></p><ul style="margin:5px 0 0 18px;padding:0;line-height:1.6">'+variableRows+'</ul>':'')+
- '<p style="margin:12px 0 4px"><b>What inspection information you need</b></p><p style="margin:0;line-height:1.7">'+steps+'</p>'+
- '<p style="margin:12px 0 4px"><b>Important points / assumptions</b></p><p style="margin:0;line-height:1.7">'+notes+'</p>'+
- '<p style="font-size:12px;color:var(--muted);margin:12px 0 0">Use the correct material properties and units. Treat the result as a calculation aid; follow the approved inspection procedure, applicable standard and acceptance criteria for inspection decisions.</p></div>';
+ '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="color:var(--maroon,#4A1020)">Inspection application</b><button type="button" data-close-info="'+ix+'" aria-label="Close inspection application" style="border:0;background:transparent;font-size:20px;cursor:pointer">×</button></div>'+
+ '<div style="font-size:19px;font-weight:800;color:var(--wine,#571629);padding:9px 0">'+equation+'</div>'+
+ '<p style="margin:8px 0 4px"><b>Where and when this formula is used during inspection</b></p><p style="margin:0;line-height:1.7">'+application+'</p></div>';
  panel.hidden=false;b.setAttribute("aria-expanded","true");
  panel.querySelector("[data-close-info]").onclick=()=>{panel.hidden=true;b.setAttribute("aria-expanded","false")};
 });
