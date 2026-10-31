@@ -795,8 +795,6 @@ draw(library[0].id,"v");
 (function(){
   const nav=document.getElementById('learningNav');
   /* Unit Conversion is a static sidebar item so it is always visible. */
-  const unitButton=nav&&nav.querySelector('[data-page="unit-conversion"]');
-  if(unitButton) unitButton.addEventListener('click',function(event){event.preventDefault();event.stopImmediatePropagation();document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b===unitButton));document.getElementById('crumb').textContent='Unit conversion';unitConversionPage();window.scrollTo({top:0,behavior:'smooth'});},true);
   const baseGo=go;
   go=function(page){
     if(page==='unit-conversion'){
@@ -878,6 +876,8 @@ draw(library[0].id,"v");
     document.getElementById('utClear').onclick=()=>{document.getElementById('utConvValue').value='';result.innerHTML='';};
     method.onchange=populateConversions;type.onchange=draw;populateConversions();
   }
+  const unitButton=nav&&nav.querySelector('[data-page="unit-conversion"]');
+  if(unitButton){unitButton.onclick=function(event){event.preventDefault();try{document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b===unitButton));document.getElementById('crumb').textContent='Unit conversion';unitConversionPage();window.scrollTo({top:0,behavior:'smooth'});}catch(error){console.error('Unit Conversion failed to open:',error);document.getElementById('view').innerHTML='<div class="notice"><strong>Unit Conversion could not load.</strong><p>'+String(error&&error.message||error)+'</p></div>';}};}
 })();
 </script>
 
