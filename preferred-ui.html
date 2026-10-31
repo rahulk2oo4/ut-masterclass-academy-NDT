@@ -26,6 +26,7 @@
     <button data-page="dashboard"><span class="ico">⌂</span>Dashboard</button>
     <button data-page="courses"><span class="ico">▤</span>Course library</button>
     <button data-page="formulas"><span class="ico">ƒ</span>Formula library</button>
+    <button data-page="unit-conversion"><span class="ico">⇄</span>Unit conversion</button>
     <button data-page="simulation"><span class="ico">〰</span>UT simulations</button>
     <button data-page="standardBlock"><span class="ico">▱</span>Standard Blocks</button>
     <button data-page="practice"><span class="ico">☷</span>Practice questions</button>
@@ -793,12 +794,7 @@ draw(library[0].id,"v");
 /* UT Unit Conversion workspace */
 (function(){
   const nav=document.getElementById('learningNav');
-  if(nav && !document.querySelector('[data-page="unit-conversion"]')){
-    const b=document.createElement('button'); b.dataset.page='unit-conversion'; b.innerHTML='<span class="ico">⇄</span>Unit conversion';
-    const formulaBtn=nav.querySelector('[data-page="formulas"]');
-    if(formulaBtn && formulaBtn.nextSibling) nav.insertBefore(b,formulaBtn.nextSibling); else nav.appendChild(b);
-    b.addEventListener('click',()=>go('unit-conversion'));
-  }
+  /* Unit Conversion is a static sidebar item so it is always visible. */
   const baseGo=go;
   go=function(page){
     if(page==='unit-conversion'){
