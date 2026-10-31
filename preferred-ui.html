@@ -805,10 +805,40 @@ draw(library[0].id,"v");
     {id:'gain',name:'Gain change ↔ amplitude ratio',units:[['dB change',1],['amplitude ratio',1]],kind:'gain',desc:'Amplitude ratio = 10^(gain change/20).'},
     {id:'period',name:'Frequency ↔ period',units:[['Hz',1],['kHz',1e3],['MHz',1e6],['s',1],['ms',1e-3],['µs',1e-6],['ns',1e-9]],kind:'period',desc:'Frequency and period are reciprocals: T = 1/f.'},
     {id:'path',name:'Sound path ↔ depth',units:[['mm',1],['cm',10],['m',1000]],kind:'path',desc:'For angle-beam UT: depth = beam path × cos(refracted angle from normal).'},
-    {id:'metric',name:'Metric ↔ imperial dimensions',units:[['mm',1],['inch',25.4],['mm²',1],['inch²',645.16]],kind:'metric',desc:'Convert length or area units; select matching dimensions.'}
+    {id:'metric',name:'Metric ↔ imperial dimensions',units:[['mm',1],['inch',25.4],['mm²',1],['inch²',645.16]],kind:'metric',desc:'Convert length or area units; select matching dimensions.'},
+    {id:'temperature',name:'Temperature',units:[['°C',1],['°F',1],['K',1]],kind:'temperature',desc:'Temperature conversion for inspection conditions.'},
+    {id:'area',name:'Area',units:[['mm²',1],['cm²',100],['m²',1e6],['inch²',645.16],['ft²',92903.04]],kind:'linear',desc:'Inspection area and coverage.'},
+    {id:'volume',name:'Volume',units:[['mm³',1],['cm³',1000],['mL',1000],['L',1e6],['m³',1e9]],kind:'linear',desc:'Tank, liquid and volume measurements.'},
+    {id:'pressure',name:'Pressure / vacuum',units:[['Pa',1],['kPa',1e3],['MPa',1e6],['bar',1e5],['mbar',100],['psi',6894.757],['Torr',133.322]],kind:'linear',desc:'Pressure and vacuum readings.'},
+    {id:'force',name:'Force',units:[['N',1],['kN',1000],['kgf',9.80665],['lbf',4.44822]],kind:'linear',desc:'Force and load measurements.'},
+    {id:'energy',name:'Energy',units:[['J',1],['kJ',1000],['cal',4.184],['kcal',4184]],kind:'linear',desc:'Energy measurements.'},
+    {id:'power',name:'Power',units:[['W',1],['kW',1000],['hp',745.7]],kind:'linear',desc:'Power measurements.'},
+    {id:'speed',name:'Scan speed / velocity',units:[['mm/s',1],['mm/min',1/60],['m/s',1000],['m/min',1000/60],['km/h',1000/3.6]],kind:'linear',desc:'Scan and inspection speed.'},
+    {id:'current',name:'Electrical current',units:[['A',1],['mA',.001],['kA',1000]],kind:'linear',desc:'Electrical current.'},
+    {id:'voltage',name:'Voltage',units:[['V',1],['mV',.001],['kV',1000]],kind:'linear',desc:'Electrical potential and X-ray tube voltage.'},
+    {id:'illuminance',name:'Illuminance',units:[['lux',1],['foot-candle',10.7639]],kind:'linear',desc:'Lighting level for visual inspection.'},
+    {id:'magnetic',name:'Magnetic field strength',units:[['A/m',1],['kA/m',1000],['Oe',79.5775]],kind:'linear',desc:'Magnetic field strength.'},
+    {id:'flux',name:'Magnetic flux density',units:[['T',1],['mT',.001],['gauss',.0001]],kind:'linear',desc:'Magnetic flux density.'},
+    {id:'dose',name:'Radiation absorbed dose',units:[['Gy',1],['mGy',.001],['rad',.01]],kind:'linear',desc:'Absorbed radiation dose.'},
+    {id:'doseeq',name:'Radiation dose equivalent',units:[['Sv',1],['mSv',.001],['µSv',1e-6],['rem',.01]],kind:'linear',desc:'Dose equivalent; do not confuse with absorbed dose.'},
+    {id:'activity',name:'Radioactivity',units:[['Bq',1],['kBq',1e3],['MBq',1e6],['Ci',3.7e10]],kind:'linear',desc:'Radioactive activity.'},
+    {id:'conductivity',name:'Electrical conductivity',units:[['S/m',1],['MS/m',1e6]],kind:'linear',desc:'Electrical conductivity.'},
+    {id:'resistivity',name:'Electrical resistivity',units:[['Ω·m',1],['µΩ·cm',1e-8]],kind:'linear',desc:'Electrical resistivity.'},
+    {id:'impedance',name:'Impedance',units:[['Ω',1],['kΩ',1000],['MΩ',1e6]],kind:'linear',desc:'Electrical impedance.'},
+    {id:'displacement',name:'Displacement / lift-off',units:[['nm',1e-6],['µm',.001],['mm',1],['cm',10],['inch',25.4]],kind:'linear',desc:'Displacement, sensor lift-off and defect dimensions.'},
+    {id:'flow',name:'Flow rate',units:[['mL/min',1],['L/min',1000],['m³/h',16666666.7],['cm³/s',60]],kind:'linear',desc:'Leak and fluid flow rate.'},
+    {id:'viscosity',name:'Dynamic viscosity',units:[['Pa·s',1],['mPa·s',.001],['cP',.001]],kind:'linear',desc:'Dynamic viscosity.'},
+    {id:'density',name:'Density',units:[['kg/m³',1],['g/cm³',1000]],kind:'linear',desc:'Material and fluid density.'},
+    {id:'strain',name:'Strain',units:[['strain',1],['%',.01],['µε',1e-6]],kind:'linear',desc:'Strain and microstrain.'},
+    {id:'heatflux',name:'Heat flux',units:[['W/m²',1],['kW/m²',1000]],kind:'linear',desc:'Thermal heat flux.'},
+    {id:'thermalconductivity',name:'Thermal conductivity',units:[['W/(m·K)',1],['kW/(m·K)',1000]],kind:'linear',desc:'Thermal conductivity.'},
+    {id:'thermaldiffusivity',name:'Thermal diffusivity',units:[['m²/s',1],['mm²/s',1e-6]],kind:'linear',desc:'Thermal diffusivity.'},
+    {id:'phase',name:'Phase angle',units:[['degrees',1],['radians',Math.PI/180]],kind:'angle',desc:'Phase angle in degrees and radians.'},
+    {id:'sampling',name:'Sampling rate',units:[['S/s',1],['kS/s',1e3],['MS/s',1e6]],kind:'linear',desc:'Data acquisition sampling rate.'},
+    {id:'torque',name:'Torque',units:[['N·m',1],['kN·m',1000],['lbf·ft',1.35582]],kind:'linear',desc:'Torque measurements.'}
   ];
-  const methodOptions=[['ut','1. Ultrasonic Testing (UT)'],['paut','2. Phased Array Ultrasonic Testing (PAUT)'],['tofd','3. Time of Flight Diffraction (TOFD)'],['rt','4. Radiographic Testing (RT)'],['mt','5. Magnetic Particle Testing (MT)'],['pt','6. Liquid Penetrant Testing (PT)'],['et','7. Eddy Current Testing (ET)'],['vt','8. Visual Testing (VT)'],['lt','9. Leak Testing (LT)'],['ae','10. Acoustic Emission Testing (AE)'],['irt','11. Infrared Thermography (IRT)'],['shear','12. Shearography Testing'],['general','13. General Engineering and Inspection Calculations'],['auto','14. Automated NDT and Robotic Scanning']];
-  const methodConversions={ut:['frequency','wavelength','velocity','time','distance','angle','db','fsh','gain','period','path','metric'],paut:['frequency','wavelength','velocity','time','distance','angle','db','fsh','gain','period','path','metric'],tofd:['velocity','time','distance','angle','path','metric'],rt:['time','distance','metric'],mt:['distance','angle','metric'],pt:['distance','metric'],et:['frequency','time','distance','metric'],vt:['distance','angle','metric'],lt:['time','distance','metric'],ae:['frequency','time','distance','metric'],irt:['time','distance','metric'],shear:['distance','angle','metric'],general:groups.map(g=>g.id),auto:groups.map(g=>g.id)};
+  const methodOptions=[['vt','1. Visual Testing (VT)'],['pt','2. Liquid Penetrant Testing (PT)'],['mt','3. Magnetic Particle Testing (MT)'],['rt','4. Radiographic Testing (RT)'],['ut','5. Ultrasonic Testing (UT)'],['paut','6. Phased Array Ultrasonic Testing (PAUT)'],['tofd','7. Time of Flight Diffraction (TOFD)'],['et','8. Eddy Current Testing (ET)'],['lt','9. Leak Testing (LT)'],['ae','10. Acoustic Emission Testing (AE)'],['irt','11. Infrared Thermography (IRT)'],['shear','12. Shearography Testing'],['gwut','13. Guided Wave Ultrasonic Testing (GWUT)'],['mfl','14. Magnetic Flux Leakage (MFL)'],['acfm','15. Alternating Current Field Measurement (ACFM)'],['dr','16. Digital Radiography (DR)'],['general','General Engineering'],['auto','Automated / Robotic NDT']];
+  const methodConversions={vt:['distance','area','angle','illuminance','temperature','metric'],pt:['time','temperature','distance','area','pressure','viscosity','metric'],mt:['magnetic','flux','current','frequency','distance','angle','time','metric'],rt:['time','dose','doseeq','activity','distance','voltage','current','metric'],ut:['frequency','wavelength','velocity','time','distance','angle','db','fsh','gain','period','path','speed','metric'],paut:['frequency','wavelength','velocity','time','distance','angle','db','fsh','gain','period','path','speed','metric'],tofd:['velocity','time','distance','angle','path','speed','metric'],et:['frequency','conductivity','resistivity','impedance','phase','displacement','time','metric'],lt:['pressure','flow','volume','time','temperature','metric'],ae:['frequency','time','velocity','distance','db','energy','sampling','metric'],irt:['temperature','heatflux','thermalconductivity','thermaldiffusivity','distance','time','metric'],shear:['pressure','displacement','strain','temperature','distance','phase','frequency','metric'],gwut:['frequency','velocity','time','distance','db','gain','metric'],mfl:['flux','magnetic','displacement','distance','speed','voltage','metric'],acfm:['frequency','current','magnetic','distance','displacement','phase','speed','metric'],dr:['distance','time','voltage','current','dose','metric'],general:groups.map(g=>g.id),auto:groups.map(g=>g.id)};
   function unitConversionPage(){
     const view=document.getElementById('view');
     if(!view) throw new Error('The academy content area (#view) was not found.');
@@ -834,7 +864,7 @@ draw(library[0].id,"v");
       if(g.kind==='db'||g.kind==='gain'){
         if((a[0]==='dB'||a[0]==='dB change')&&b[0]==='amplitude ratio'){answer=10**(value/20);explain='Amplitude ratio = 10^(dB ÷ 20).';}
         else if(a[0]==='amplitude ratio'&&(b[0]==='dB'||b[0]==='dB change')){if(value<=0){result.innerHTML='<div class="notice">Amplitude ratio must be greater than zero.</div>';return;}answer=20*Math.log10(value);explain='dB = 20 log₁₀(amplitude ratio).';}
-      }else if(g.kind==='angle'){answer=a[0]==='degrees'&&b[0]==='radians'?value*Math.PI/180:value*180/Math.PI;}
+      }else if(g.kind==='temperature'){const c=a[0]==='°C'?value:a[0]==='°F'?(value-32)*5/9:value-273.15;answer=b[0]==='°C'?c:b[0]==='°F'?c*9/5+32:c+273.15;explain='Temperature converted using the appropriate offset and scale.';}else if(g.kind==='angle'){answer=a[0]==='degrees'&&b[0]==='radians'?value*Math.PI/180:value*180/Math.PI;}
       else if(g.kind==='period'){
         const isFreq=['Hz','kHz','MHz'].includes(a[0]),toFreq=['Hz','kHz','MHz'].includes(b[0]);
         if(isFreq===toFreq){result.innerHTML='<div class="notice">Choose one frequency unit and one time unit.</div>';return;}
