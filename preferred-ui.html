@@ -280,7 +280,11 @@ if(Number.isInteger(topicIndex)){
  ][topicIndex];
  view.querySelectorAll('.formula-card').forEach(panel=>{
   const tag=panel.querySelector('.method-tag');
-  panel.style.display=tag&&tag.textContent.trim().includes(wanted)?'':'none';
+  // Topic 0 is the dedicated live A-scan instrument panel; its label is not a .method-tag.
+  const matches=topicIndex===0
+   ? panel.classList.contains('ndt-instrument')
+   : tag&&tag.textContent.trim().includes(wanted);
+  panel.style.display=matches?'':'none';
  });
  // The first two labs share a grid; retain the grid only when one of its cards is selected.
  view.querySelectorAll('div[style*="grid-template-columns"]').forEach(grid=>{
