@@ -181,7 +181,7 @@ function samplePixel(x,y){const d=geom(),dx=x-d.x,dy=y-d.y,sens=+$('sqSens').val
 function paintScanPixel(r,d,ox,oy,pw,ph,axisX,axisY,rx){const cx=ox+r.x/axisX*pw,cy=oy+ph-r.y/axisY*ph,cw=Math.max(1,rx/axisX*pw+.35),ch=Math.max(1,rx/axisY*ph+.35);mc.fillStyle=ampColor(r.amplitude);if(d.sample==='honeycomb'){const radius=8.2,dx=Math.sqrt(3)*radius,dy=1.5*radius,row=Math.round((cy-oy)/dy),col=Math.round((cx-ox-(row%2)*dx/2)/dx),hx=ox+col*dx+(row%2)*dx/2,hy=oy+row*dy;mc.beginPath();for(let k=0;k<6;k++){const a=Math.PI/3*k,x=hx+radius*Math.cos(a),y=hy+radius*Math.sin(a);if(!k)mc.moveTo(x,y);else mc.lineTo(x,y);}mc.closePath();mc.fill();mc.strokeStyle='rgba(255,218,65,.98)';mc.lineWidth=1.25;mc.stroke();}else{mc.fillRect(cx,cy-ch,cw,ch);}}
 function drawMap(){
 const W=map.width,H=map.height,d=geom();
-const ox=55,oy=28,pw=820,ph=340,barX=920,barW=18,axisX=Math.max(500,Math.ceil(d.L/100)*100),axisY=Math.max(500,Math.ceil(d.W/100)*100);
+const ox=55,oy=28,pw=820,ph=340,barX=920,barW=18,axisX=Math.max(.001,d.L),axisY=Math.max(.001,d.W);
 const cacheKey=[d.L,d.W,d.sample,d.type,d.x,d.y,d.dl,d.dw,$('sqSens').value,$('sqResolution').value,$('sqXScale').value,$('sqYScale').value].join('|');
 if(cacheKey===mapCacheKey&&mapRenderedCount<=scanResults.length){
 mc.save();mc.beginPath();mc.rect(ox,oy,pw,ph);mc.clip();const rx=+$('sqResolution').value||1;
@@ -190,14 +190,14 @@ mapRenderedCount=scanResults.length;mc.fillStyle='#fff';mc.fillRect(ox,oy+ph+45,
 return;
 }
 mapCacheKey=cacheKey;mapRenderedCount=0;mc.fillStyle='#fff';mc.fillRect(0,0,W,H);
-mc.fillStyle='#fff';mc.fillRect(ox,oy,pw,ph);const sampleH=Math.min(ph,d.W/axisY*ph);
+mc.fillStyle='#fff';mc.fillRect(ox,oy,pw,ph);
 // Keep the specimen area blank until actual receiver samples are acquired.
 
 mc.save();mc.beginPath();mc.rect(ox,oy,pw,ph);mc.clip();const rx=+$('sqResolution').value||1;
 scanResults.forEach(r=>paintScanPixel(r,d,ox,oy,pw,ph,axisX,axisY,rx));mc.restore();mapRenderedCount=scanResults.length;
 mc.strokeStyle='#4a1020';mc.lineWidth=2;mc.strokeRect(ox,oy,pw,ph);mc.fillStyle='#4a1020';mc.font='14px Arial';mc.textAlign='left';mc.fillText(d.sample==='honeycomb'?'HONEYCOMB PANEL · HEXAGONAL CELL C-SCAN':d.sample==='curved'?'CURVED PANEL · TT C-SCAN':d.sample==='flat'?'FLAT PLATE · TT C-SCAN':'SANDWICH PANEL · TT C-SCAN',ox,19);
-const xs=+$('sqXScale').value,ys=+$('sqYScale').value;mc.font='11px Arial';mc.textAlign='center';for(let x=0;x<=axisX;x+=xs){const px=ox+x/axisX*pw;mc.strokeStyle='#4a1020';mc.beginPath();mc.moveTo(px,oy+ph);mc.lineTo(px,oy+ph+5);mc.stroke();mc.fillText(String(x),px,oy+ph+18);}
-mc.textAlign='right';for(let y=0;y<=axisY;y+=ys){const py=oy+ph-y/axisY*ph;mc.strokeStyle='#4a1020';mc.beginPath();mc.moveTo(ox-5,py);mc.lineTo(ox,py);mc.stroke();mc.fillText(String(y),ox-9,py+4);}
+const xs=Math.max(1,+$('sqXScale').value||100),ys=Math.max(1,+$('sqYScale').value||100);mc.font='11px Arial';mc.textAlign='center';const xticks=[];for(let x=0;x<axisX;x+=xs)xticks.push(x);if(!xticks.length||Math.abs(xticks[xticks.length-1]-axisX)>.001)xticks.push(axisX);xticks.forEach(x=>{const px=ox+x/axisX*pw;mc.strokeStyle='#4a1020';mc.beginPath();mc.moveTo(px,oy+ph);mc.lineTo(px,oy+ph+5);mc.stroke();mc.fillText(Number(x.toFixed(2)).toString(),px,oy+ph+18);});
+mc.textAlign='right';const yticks=[];for(let y=0;y<axisY;y+=ys)yticks.push(y);if(!yticks.length||Math.abs(yticks[yticks.length-1]-axisY)>.001)yticks.push(axisY);yticks.forEach(y=>{const py=oy+ph-y/axisY*ph;mc.strokeStyle='#4a1020';mc.beginPath();mc.moveTo(ox-5,py);mc.lineTo(ox,py);mc.stroke();mc.fillText(Number(y.toFixed(2)).toString(),ox-9,py+4);});
 mc.textAlign='center';mc.fillText('X axis (mm)',ox+pw/2,oy+ph+38);mc.save();mc.translate(18,oy+ph/2);mc.rotate(-Math.PI/2);mc.textAlign='center';mc.fillText('Y axis (mm)',0,0);mc.restore();
 const grad=mc.createLinearGradient(0,oy+ph,0,oy);for(let v=0;v<=100;v+=5)grad.addColorStop(v/100,ampColor(v));mc.fillStyle=grad;mc.fillRect(barX,oy,barW,ph);mc.strokeStyle='#777';mc.strokeRect(barX,oy,barW,ph);mc.font='11px Arial';mc.textAlign='left';for(let v=0;v<=100;v+=10){const yy=oy+ph-v/100*ph;mc.fillStyle='#4a1020';mc.fillText(String(v),barX+barW+7,yy+4);}
 mc.save();mc.translate(barX+55,oy+ph/2);mc.rotate(-Math.PI/2);mc.textAlign='center';mc.fillText('Received amplitude (%)',0,0);mc.restore();mc.fillStyle='#4a1020';mc.font='12px Arial';mc.textAlign='left';mc.fillText(scanComplete?'Scan complete · '+scanResults.length+' pixels':scanResults.length?'Live mapping · '+scanResults.length+' / '+points.length+' pixels':'Honeycomb structure shown only for Honeycomb Panel · colour scale 0–100%',ox,oy+ph+61);
