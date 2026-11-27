@@ -1,8 +1,6 @@
 name: Deploy Fresh NDT Masterclass Academy
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
 
 permissions:
