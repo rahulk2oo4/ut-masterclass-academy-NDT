@@ -155,6 +155,24 @@ const P=[
 "A recurring line at the same detector coordinate on unrelated CR exposures may be a plate scratch rather than a component discontinuity. Compare the original image, check the plate and reader, and verify whether the line follows the detector coordinate or the component.",
 ["Relying only on an enhanced image","Ignoring detector artefacts and saturation","Confusing pixel size with total system resolution","Saving images without component identity or metadata"],
 ["CR — computed radiography using a reusable imaging plate","DR — digital radiography using a digital detector","Pixel pitch — centre-to-centre detector pixel distance","SNR — signal-to-noise ratio","Dynamic range — range of exposure signals recorded usefully"],""],
+["visual",/visual|lighting|viewing|optical|mirror|borescope|videoscope|visual acuity|contrast|glare|weld gauge/i,
+"Visual examination conditions, optical aids and measurement",[
+"Visual testing evaluates conditions that can be seen directly or through optical aids. The inspector needs a defined viewing area, sufficient access, appropriate lighting, a suitable viewing angle and adequate visual capability. Direct visual testing uses the eye at the component; remote visual testing uses mirrors, cameras, borescopes or videoscopes to carry the image from an inaccessible region.",
+"Illumination, contrast and glare affect detection. Grazing light can reveal surface profile, undercut or a raised edge that is difficult to see under flat illumination. Viewing distance and angle must allow the required feature to be resolved. Magnifiers increase apparent angular size but do not repair poor focus, low resolution or inadequate access.",
+"Dimensional examination requires suitable gauges and measurement procedures. Weld gauges, pit-depth gauges, callipers, scales and borescopes serve different tasks and must be used within their geometry and calibration limits. Record the feature, location, dimensions, lighting/access limitations and image orientation. VT only assesses conditions visible through the available optical path."
+],["Illuminance and light direction","Viewing distance, angle and contrast","Surface cleanliness and reflectivity","Optical resolution, focus and depth of field","Gauge range, resolution and calibration"],
+"A weld toe is examined under general lighting, then with controlled oblique light to distinguish a shallow groove from a surface mark. A weld gauge measures the feature; the value is compared with the applicable acceptance requirement and recorded with its location.",
+["Using a light source that creates glare or deep shadows","Measuring from an unsuitable angle or with an unverified gauge","Assuming a borescope image shows all hidden surfaces","Recording an image without component orientation or location"],
+["Direct visual testing — observation with direct line of sight","Remote visual testing — observation using optical instruments","Illuminance — luminous flux per unit area","Depth of field — range remaining acceptably focused","Borescope — optical instrument for remote internal viewing"],""],
+["materials",/material|metallurgy|grain|microstructure|anisotrop|casting|forging|rolling|heat treatment|fatigue|creep|corrosion|service damage|failure|fracture|manufacturing discontinuity/i,
+"Material structure, manufacturing history and damage mechanisms",[
+"Material behaviour influences both the discontinuities that may form and the way an NDT signal propagates. Metals contain grains and phases; their size, orientation, texture, heat treatment and residual stress influence strength, ductility, magnetic response, conductivity and acoustic scattering. Polymer-matrix composites are layered and anisotropic, so inspection response depends on fibre orientation, ply architecture, resin, porosity and bond condition.",
+"Manufacturing processes create characteristic conditions. Casting may leave gas porosity, shrinkage or inclusions; forging and rolling can elongate inclusions or create laps and laminations; welding creates a fusion zone and heat-affected zone where cracks, lack of fusion, inclusions and porosity may occur. Machining can create tears, burns or surface marks. Process history helps identify likely target locations and orientations.",
+"Service damage includes fatigue under cyclic stress, creep under sustained high-temperature loading, corrosion, erosion, wear, hydrogen damage and stress-corrosion cracking. NDT can reveal evidence of damage, but remaining-life or root-cause conclusions require engineering assessment and supporting information. Select methods based on material conductivity, ferromagnetism, acoustic attenuation, porosity, layering and access."
+],["Material family, grade and heat-treatment condition","Grain size, texture, phases and anisotropy","Manufacturing process and likely discontinuities","Operating temperature, loading, corrosion and environment","Method compatibility and signal behaviour"],
+"A coarse-grained casting may scatter ultrasound and reduce penetration; radiography may be suitable for volumetric porosity if projection geometry is appropriate. A tight planar crack may be better examined by qualified UT or a surface method depending on orientation and access.",
+["Assuming all steel grades have identical magnetic or acoustic properties","Selecting a method without identifying composite ply architecture or metal microstructure","Confusing manufacturing discontinuities with service damage","Claiming remaining life from NDT alone"],
+["Microstructure — grain, phase and defect arrangement","Anisotropy — properties depend on direction","Heat-affected zone — weld-adjacent material altered by welding heat","Fatigue — progressive damage under cyclic loading","Creep — time-dependent deformation under sustained stress"],""],
 ["advanced",/robot|automated|coordinate frame|tool centre point|tcp|base frame|track|encoder|synchron|ai|machine learning|classification|segmentation|probability of detection|precision|recall|validation|dataset|model drift|shearography|speckle|interferometry|gpr|ground penetrating|radar|neutron|laser ultrasonic|computed tomography|tomography|voxel|digital image correlation|microwave|terahertz|guided wave|mfl|magnetic flux leakage/i,
 "Advanced inspection systems and data interpretation",[
 "Advanced NDT combines a physical inspection technique with specialised sensors, controlled excitation, data acquisition and processing. Automation improves repeatability and coverage only when the sensor, path, reference checks and acquisition coordinates are validated. An attractive image or automated label cannot correct an unsuitable physical method.",
@@ -195,15 +213,16 @@ const forced={"PAUT":"paut","TOFD":"tofd","RT":"rt","MT":"mt","PT":"pt","ECT":"e
 function norm(v){return String(v||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
 function selectProfile(key,title){
  const n=norm(title);
- if(key==="UT"||key==="GWT"){
-  if(/calibration|reference block|sensitivity|dac|tcg|velocity setting|zero correction|system check/.test(n))return P.find(x=>x[0]==="calibration");
-  if(/a.scan|b.scan|c.scan|display|interpret|signal|sizing|false call/.test(n))return P.find(x=>x[0]==="interpret");
-  if(/scan|coverage|immersion|squirter|water path|procedure|inspection planning|robot path/.test(n))return P.find(x=>x[0]==="scan");
-  if(/probe|transducer|piezoelectric|wedge|couplant/.test(n))return P.find(x=>x[0]==="probe");
-  if(/defect|crack|lamination|delamination|porosity|inclusion|fatigue|corrosion/.test(n))return P.find(x=>x[0]==="defects");
-  if(/frequency|period|wavelength|velocity|wave|impedance|refraction|attenuation|beam|resolution|dead zone/.test(n))return P.find(x=>x[0]==="wave");
- }
- if(key==="PAUT")return P.find(x=>x[0]==="paut");
+ // Prioritise the exact lesson topic, not just the method name.
+ if(/calibration|verification|reference block|reference standard|sensitivity|dac|tcg|time.zero|velocity setting|zero correction|encoder calibration|iqi|system check/.test(n))return P.find(x=>x[0]==="calibration");
+ if(/a.scan|b.scan|c.scan|d.scan|s.scan|e.scan|display|interpret|signal|radargram|thermogram|fringe|sizing|phase|metrics|image processing/.test(n))return P.find(x=>x[0]==="interpret");
+ if(/scan plan|scan path|scanning pattern|coverage|encoded|acquisition|workflow|probe movement|scan speed|index|raster|immersion|squirter|water path|robot path|path planning|coordinate frame|tcp|track|encoder|surface preparation|process sequence|dwell time|exposure geometry|sensor layout|sensor placement/.test(n))return P.find(x=>x[0]==="scan");
+ if(/defect|discontinuity|crack|fatigue|porosity|pore|inclusion|lack of fusion|penetration|lamination|delamination|disbond|corrosion|erosion|shrinkage|undercut|overlap|failure/.test(n))return P.find(x=>x[0]==="defects");
+ if(/visual|lighting|viewing|optical|mirror|borescope|videoscope|visual acuity|contrast|glare|weld gauge/.test(n))return P.find(x=>x[0]==="visual");
+ if(/material|metallurgy|grain|microstructure|anisotrop|casting|forging|rolling|heat treatment|fatigue|creep|corrosion|fracture/.test(n))return P.find(x=>x[0]==="materials");
+ if(/probe|transducer|piezoelectric|element construction|array architecture|coil|sensor|detector|camera|antenna|optical|source|emitter|receiver|wedge|couplant|coupling|backing|matching layer/.test(n))return P.find(x=>x[0]==="probe");
+ if(/mechanical wave|wave motion|wave propagation|frequency|period|wavelength|wave velocity|longitudinal|shear wave|surface wave|plate wave|guided wave|acoustic impedance|reflection|transmission|refraction|snell|mode conversion|attenuation|scattering|absorption|beam profile|near field|far field|beam spread|resolution|dead zone/.test(n))return P.find(x=>x[0]==="wave");
+ if(key==="PAUT"&&/array|focal law|beam steering|focusing|sectorial|s.scan|e.scan/.test(n))return P.find(x=>x[0]==="paut");
  if(key==="TOFD")return P.find(x=>x[0]==="tofd");
  if(key==="RT"||key==="NR")return P.find(x=>x[0]==="rt");
  if(key==="MT"||key==="MFL")return P.find(x=>x[0]==="mt");
@@ -215,13 +234,10 @@ function selectProfile(key,title){
  if(key==="CR/DR"||key==="CT")return P.find(x=>x[0]==="digital");
  if(key==="GENERAL")return P.find(x=>x[0]==="foundations");
  if(["ST","GPR","LUT","DIC","MW","THz","ROBOT","AI"].includes(key))return P.find(x=>x[0]==="advanced");
- if(/calibration|verification|reference|sensitivity|dac|tcg|iqi/.test(n))return P.find(x=>x[0]==="calibration");
- if(/scan|coverage|path|workflow|preparation|dwell|exposure|sensor layout|loading/.test(n))return P.find(x=>x[0]==="scan");
- if(/interpret|display|image|signal|radargram|thermogram|fringe|sizing|phase|metrics/.test(n))return P.find(x=>x[0]==="interpret");
- if(/probe|sensor|coil|camera|detector|antenna|transducer|source|optical|equipment/.test(n))return P.find(x=>x[0]==="probe");
- if(/defect|crack|porosity|lamination|corrosion|disbond|failure/.test(n))return P.find(x=>x[0]==="defects");
- if(/material|grain|casting|forging|fatigue|creep|metallurgy/.test(n))return P.find(x=>x[0]==="materials");
- return P.find(x=>x[0]===(forced[key]||"foundations"))||P[0];
+ if(key==="PAUT")return P.find(x=>x[0]==="paut");
+ if(key==="TOFD")return P.find(x=>x[0]==="tofd");
+ if(["UT","GWT"].includes(key))return P.find(x=>x[0]==="wave");
+ return P.find(x=>x[0]==="foundations");
 }
 function bestChapter(key,title,book){
  if(!book||!book.chapters)return null;
