@@ -228,7 +228,7 @@ function selectProfile(key,title){
  if(key==="MT"||key==="MFL")return P.find(x=>x[0]==="mt");
  if(key==="PT")return P.find(x=>x[0]==="pt");
  if(key==="ECT")return P.find(x=>x[0]==="et");
- if(key==="LT")return P.find(x=>x[0]==="leak");
+ if(key==="LT")return P.find(x=>x[0]==="lt");
  if(key==="AE")return P.find(x=>x[0]==="ae");
  if(key==="IRT")return P.find(x=>x[0]==="thermal");
  if(key==="CR/DR"||key==="CT")return P.find(x=>x[0]==="digital");
