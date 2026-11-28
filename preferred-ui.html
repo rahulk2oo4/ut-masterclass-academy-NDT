@@ -1086,9 +1086,9 @@ openLesson=function(mi,li){
  const utFoundationLesson=mi===0&&li===0;
  const utFoundationHtml=window.UT_FOUNDATION_HTML||"";
  const selectedChapter=detail&&detail.chapter;
- const depthTopic=(typeof lessonDepth!=="undefined"&&lessonDepth[mi])?lessonDepth[mi][li]:null;
- const topicTitle=detail&&detail.exactSpecific?detail.heading:(depthTopic?cleanTitle:(selectedChapter?selectedChapter.title:detail&&detail.heading?detail.heading:cleanTitle));
- const primaryParagraphs=detail&&detail.exactSpecific?detail.paragraphs:(depthTopic&&depthTopic.p?depthTopic.p:(selectedChapter?selectedChapter.paragraphs:(detail?detail.paragraphs:[objective])));
+ const depthTopic=null;
+ const topicTitle=detail&&detail.exactSpecific?detail.heading:(selectedChapter?selectedChapter.title:detail&&detail.heading?detail.heading:cleanTitle);
+ const primaryParagraphs=detail&&detail.exactSpecific?detail.paragraphs:(selectedChapter?selectedChapter.paragraphs:(detail?detail.paragraphs:[objective]));
  const figure=(detail&&detail.diagram)||courseDiagrams[mi]||"";
  const showEquipment=/probe|transducer|sensor|equipment|setup|instrument|coil|detector|camera|antenna|source|optical|wedge|array/i.test(name);
  const showProcedure=/sequence|workflow|procedure|inspection|scan|acquisition|process|preparation|loading|path planning|monitoring plan/i.test(name);
