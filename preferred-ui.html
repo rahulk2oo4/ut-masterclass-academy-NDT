@@ -1063,7 +1063,8 @@ openLesson=function(mi,li){
  const percent=Math.round((completed.filter(function(x){return x.startsWith(mi+"-");}).length/Math.max(1,m.lessons.length))*100);
  const prev=li>0?li-1:null,next=li+1<m.lessons.length?li+1:null;
  const cleanTitle=String(name).replace(/^\d+\s*[·.]\s*/,"");
- const topicTitle=detail&&detail.heading?detail.heading:cleanTitle;
+ const topicTitle=detail&&detail.exactSpecific?detail.heading:(depthTopic?cleanTitle:(selectedChapter?selectedChapter[0]:detail&&detail.heading?detail.heading:cleanTitle));
+ const primaryParagraphs=detail&&detail.exactSpecific?detail.paragraphs:(depthTopic&&depthTopic.p?depthTopic.p:(selectedChapter?String(selectedChapter[1]||"").split(/\n\s*\n/).filter(Boolean):(detail?detail.paragraphs:[objective])));
  const figure=(detail&&detail.diagram)||courseDiagrams[mi]||"";
  const showEquipment=/probe|transducer|sensor|equipment|setup|instrument|coil|detector|camera|antenna|source|optical|wedge|array/i.test(name);
  const showProcedure=/sequence|workflow|procedure|inspection|scan|acquisition|process|preparation|loading|path planning|monitoring plan/i.test(name);
@@ -1072,9 +1073,7 @@ openLesson=function(mi,li){
  const objective=detail&&detail.lessonLead?detail.lessonLead:"Study "+cleanTitle+" in "+m.name+" and understand its physical principle, practical variables, equipment requirements and limitations.";
  const selectedChapter=detail&&detail.chapter;
  const depthTopic=(typeof lessonDepth!=="undefined"&&lessonDepth[mi])?lessonDepth[mi][li]:null;
- const depthHtml=(!detail||!detail.specific)&&depthTopic
-  ? "<section class=\"lesson-topic-card\" id=\"lesson-depth-notes\"><div class=\"lesson-topic-kicker\">ADDITIONAL TECHNICAL EXPLANATION</div><h2>Detailed lesson notes</h2>"+paras(depthTopic.p||[])+(depthTopic.focus&&depthTopic.focus.length?"<h3>Engineering focus</h3>"+list(depthTopic.focus):"")+(depthTopic.example?"<div class=\"lesson-field-example\"><strong>Worked example</strong><p>"+escHtml(depthTopic.example)+"</p></div>":"")+"</section>"
-  : "";
+ const depthHtml="";
  const chapterHtml=selectedChapter?'<section class="lesson-topic-card"><div class="lesson-topic-kicker">RELATED METHOD DETAIL</div><h2>'+escHtml(selectedChapter.title)+'</h2>'+paras(selectedChapter.paragraphs)+'</section>':'';
  const methodSetup=showEquipment&&detail&&detail.equipment&&detail.equipment.length?'<section class="lesson-topic-card"><div class="lesson-topic-kicker">EQUIPMENT AND COMPONENTS</div><h2>Equipment used for this topic</h2>'+list(detail.equipment)+'</section>':'';
  const workflow=showProcedure&&detail&&detail.procedure&&detail.procedure.length?'<section class="lesson-topic-card"><div class="lesson-topic-kicker">PRACTICAL SEQUENCE</div><h2>How this is performed</h2>'+steps(detail.procedure)+'</section>':'';
@@ -1092,10 +1091,10 @@ openLesson=function(mi,li){
  '<div class="lesson-study-layout"><nav class="lesson-study-toc"><b>LESSON CONTENTS</b><a href="#lesson-objective">Learning objective</a><a href="#lesson-explanation">Detailed explanation</a>'+(figure?'<a href="#lesson-illustration">Illustrated principle</a>':'')+(selectedChapter?'<a href="#lesson-method-detail">Method-specific detail</a>':'')+(methodSetup?'<a href="#lesson-equipment">Equipment</a>':'')+(workflow?'<a href="#lesson-workflow">Procedure</a>':'')+(vars?'<a href="#lesson-variables">Important variables</a>':'')+'<a href="#lesson-example">Worked application</a><a href="#lesson-errors">Common mistakes</a><a href="#lesson-terms">Technical terms</a><a href="#lesson-self-check">Self-check</a></nav>'+
  '<main class="lesson-study-main">'+
  '<section class="lesson-topic-card" id="lesson-objective"><div class="lesson-topic-kicker">LEARNING OBJECTIVE</div><h2>'+escHtml(cleanTitle)+'</h2><p>'+escHtml(objective)+'</p>'+(detail&&detail.lessonPoints.length?list(detail.lessonPoints):'')+'</section>'+
- '<section class="lesson-topic-card" id="lesson-explanation"><div class="lesson-topic-kicker">DETAILED EXPLANATION</div><h2>'+escHtml(topicTitle)+'</h2>'+paras(detail?detail.paragraphs:[objective])+'</section>'+depthHtml+
+ '<section class="lesson-topic-card" id="lesson-explanation"><div class="lesson-topic-kicker">DETAILED EXPLANATION</div><h2>'+escHtml(topicTitle)+'</h2>'+paras(primaryParagraphs)+'</section>'+depthHtml+
  (figure?'<section class="lesson-topic-card" id="lesson-illustration"><div class="lesson-topic-kicker">ILLUSTRATED TECHNICAL PRINCIPLE</div><figure class="lesson-topic-image">'+figure+'<figcaption>'+escHtml(cleanTitle)+' — conceptual diagram. Actual equipment geometry and settings must follow the approved procedure.</figcaption></figure></section>':'')+
  (formula?'<section class="lesson-topic-card">'+formula+'</section>':'')+
- (selectedChapter?'<section class="lesson-topic-card" id="lesson-method-detail"><div class="lesson-topic-kicker">METHOD-SPECIFIC EXPLANATION</div><h2>'+escHtml(selectedChapter.title)+'</h2>'+paras(selectedChapter.paragraphs)+'</section>':'')+
+ (selectedChapter&&detail&&detail.exactSpecific?'<section class="lesson-topic-card" id="lesson-method-detail"><div class="lesson-topic-kicker">ADDITIONAL METHOD REFERENCE</div><h2>'+escHtml(selectedChapter.title)+'</h2>'+paras(selectedChapter.paragraphs)+'</section>':'')+
  methodSetup+
  workflow+
  vars+
