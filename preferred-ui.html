@@ -1105,7 +1105,6 @@ openLesson=function(mi,li){
  '<section class="lesson-topic-card" id="lesson-errors"><div class="lesson-topic-kicker">TROUBLESHOOTING</div><h2>Common mistakes and how to avoid them</h2>'+(mistakes||'<p>Check the physical setup, reference response, expected geometry, material properties and repeatability before assigning a cause to an unexpected indication.</p>')+'</section>'+
  (limitation?limitation:'')+
  (terms?'<section class="lesson-topic-card" id="lesson-terms"><div class="lesson-topic-kicker">TECHNICAL VOCABULARY</div><h2>Terms to know</h2>'+terms+'</section>':'')+
- quickCheck+
  '<section class="lesson-topic-card"><div class="lesson-study-note">This is theory learning material. Practical competence requires suitable training, supervised experience, current approved procedures, applicable standards and authorisation. No generic lesson sets acceptance criteria for a real component.</div><div class="lesson-study-actions" style="margin-top:15px"><button class="btn" type="button" id="prevLesson">← Previous lesson</button><button class="btn primary" type="button" id="completeLesson">'+(done?'✓ Lesson completed':'Mark lesson complete')+'</button><button class="btn primary" type="button" id="nextLesson">Next lesson →</button><button class="btn" type="button" id="backChapterList">Course outline</button></div></section>'+
  '</main></div></div>';
  document.getElementById("lessonBack").onclick=function(){openMethod(mi);};
