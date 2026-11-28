@@ -1310,10 +1310,10 @@ document.addEventListener("click",function(event){
  if(lessonButton){
   event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
   const lessonIndex=Number(lessonButton.getAttribute("data-lesson"));
-  if(typeof window.openLesson==="function"&&Number.isInteger(window.currentMethod)&&Number.isInteger(lessonIndex)){
-   window.openLesson(window.currentMethod,lessonIndex);
+  if(typeof window.openLesson==="function"&&Number.isInteger(window.__academyCurrentMethod)&&Number.isInteger(lessonIndex)){
+   window.openLesson(window.__academyCurrentMethod,lessonIndex);
   }else{
-   console.error("Lesson navigation is not ready.",{openLesson:typeof window.openLesson,methodIndex:window.currentMethod,lessonIndex});
+   console.error("Lesson navigation is not ready.",{openLesson:typeof window.openLesson,methodIndex:window.__academyCurrentMethod,lessonIndex});
   }
   return;
  }
@@ -1322,6 +1322,7 @@ document.addEventListener("click",function(event){
   event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
   const methodIndex=Number(methodButton.getAttribute("data-method"));
   if(typeof window.openMethod==="function"&&Number.isInteger(methodIndex)){
+   window.__academyCurrentMethod=methodIndex;
    window.openMethod(methodIndex);
   }else{
    console.error("Method navigation is not ready.",{openMethod:typeof window.openMethod,methodIndex});
