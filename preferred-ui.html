@@ -1063,8 +1063,8 @@ openLesson=function(mi,li){
  const percent=Math.round((completed.filter(function(x){return x.startsWith(mi+"-");}).length/Math.max(1,m.lessons.length))*100);
  const prev=li>0?li-1:null,next=li+1<m.lessons.length?li+1:null;
  const cleanTitle=String(name).replace(/^\d+\s*[·.]\s*/,"");
- const topicTitle=detail&&detail.exactSpecific?detail.heading:(depthTopic?cleanTitle:(selectedChapter?selectedChapter[0]:detail&&detail.heading?detail.heading:cleanTitle));
- const primaryParagraphs=detail&&detail.exactSpecific?detail.paragraphs:(depthTopic&&depthTopic.p?depthTopic.p:(selectedChapter?String(selectedChapter[1]||"").split(/\n\s*\n/).filter(Boolean):(detail?detail.paragraphs:[objective])));
+ const topicTitle=detail&&detail.exactSpecific?detail.heading:(depthTopic?cleanTitle:(selectedChapter?selectedChapter.title:detail&&detail.heading?detail.heading:cleanTitle));
+ const primaryParagraphs=detail&&detail.exactSpecific?detail.paragraphs:(depthTopic&&depthTopic.p?depthTopic.p:(selectedChapter?selectedChapter.paragraphs:(detail?detail.paragraphs:[objective])));
  const figure=(detail&&detail.diagram)||courseDiagrams[mi]||"";
  const showEquipment=/probe|transducer|sensor|equipment|setup|instrument|coil|detector|camera|antenna|source|optical|wedge|array/i.test(name);
  const showProcedure=/sequence|workflow|procedure|inspection|scan|acquisition|process|preparation|loading|path planning|monitoring plan/i.test(name);
