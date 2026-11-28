@@ -447,23 +447,27 @@ function specific(key,title){
 }
 function specific(key,title){
  const n=norm(title);
- return EXACT.find(function(x){return x.key===key&&x.re.test(n);})||S.find(function(x){return x.re.test(n);})||null;
+ return EXACT.find(function(x){return x.key===key&&x.re.test(n);})||null;
+}
+function genericSpecific(title){
+ const n=norm(title);
+ return S.find(function(x){return x.re.test(n);})||null;
 }
 function build(a){
  const key=a.key||"GENERAL",title=a.title||"Lesson",m=a.method||{},book=a.book||null,base=a.base||null,c=a.curriculum||{};
- const profile=selectProfile(key,title),sp=specific(key,title);
+ const profile=selectProfile(key,title),sp=specific(key,title),fallback=genericSpecific(title),chosen=sp||fallback;
  const chapter=bestChapter(key,title,book),methodChapter=chapter?String(chapter[1]||"").split(/\n\s*\n/).filter(Boolean):[];
  const baseEquip=base&&base.equipment?base.equipment:[];
  const baseVars=base&&base.variables?base.variables:[];
  const baseProcedure=base&&base.workflow?base.workflow:[];
  const titleClean=String(title).replace(/^\d+\s*[·.]\s*/,"");
- const heading=sp?sp.head:profile[2];
- const explanation=sp?sp.p:profile[3];
- const variables=sp?sp.v:profile[4];
- const example=sp?sp.ex:profile[5];
- const errors=sp?sp.err:profile[6];
- const terms=sp?sp.terms:profile[7];
- const formula=sp?sp.f:profile[8];
+ const heading=chosen?chosen.head:profile[2];
+ const explanation=chosen?chosen.p:profile[3];
+ const variables=chosen?chosen.v:profile[4];
+ const example=chosen?chosen.ex:profile[5];
+ const errors=chosen?chosen.err:profile[6];
+ const terms=chosen?chosen.terms:profile[7];
+ const formula=chosen?chosen.f:profile[8];
  const lead=c.why||("By the end of this lesson, explain "+titleClean.toLowerCase()+" and identify the setup variables that control its reliability in "+(m.name||key)+".");
  return {
   title:titleClean,heading:heading,paragraphs:explanation,variables:variables,example:example,
@@ -472,7 +476,7 @@ function build(a){
   equipment:baseEquip,procedure:baseProcedure,baseVariables:baseVars,
   limits:base&&base.limits?base.limits:[],
   lessonLead:lead,lessonPoints:c.points||[],diagram:diagram(profile[0],title,key),
-  profileId:profile[0],specific:!!sp
+  profileId:profile[0],specific:!!sp,exactSpecific:!!sp
  };
 }
 window.NDT_TOPIC_CONTENT={build:build,diagram:diagram};
