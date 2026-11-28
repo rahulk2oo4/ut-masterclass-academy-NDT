@@ -1063,6 +1063,8 @@ openLesson=function(mi,li){
  const percent=Math.round((completed.filter(function(x){return x.startsWith(mi+"-");}).length/Math.max(1,m.lessons.length))*100);
  const prev=li>0?li-1:null,next=li+1<m.lessons.length?li+1:null;
  const cleanTitle=String(name).replace(/^\d+\s*[·.]\s*/,"");
+ const selectedChapter=detail&&detail.chapter;
+ const depthTopic=(typeof lessonDepth!=="undefined"&&lessonDepth[mi])?lessonDepth[mi][li]:null;
  const topicTitle=detail&&detail.exactSpecific?detail.heading:(depthTopic?cleanTitle:(selectedChapter?selectedChapter.title:detail&&detail.heading?detail.heading:cleanTitle));
  const primaryParagraphs=detail&&detail.exactSpecific?detail.paragraphs:(depthTopic&&depthTopic.p?depthTopic.p:(selectedChapter?selectedChapter.paragraphs:(detail?detail.paragraphs:[objective])));
  const figure=(detail&&detail.diagram)||courseDiagrams[mi]||"";
@@ -1071,8 +1073,6 @@ openLesson=function(mi,li){
  const showQuality=/limitations|safety|report|quality|troubleshoot|uncertainty|ethics|acceptance|false call/i.test(name);
  const showVariables=/parameter|variable|setting|frequency|velocity|wavelength|resolution|sensitivity|calibration|geometry|coverage|scan|focal|exposure|emissivity|depth|impedance|lift.off|pixel|threshold/i.test(name);
  const objective=detail&&detail.lessonLead?detail.lessonLead:"Study "+cleanTitle+" in "+m.name+" and understand its physical principle, practical variables, equipment requirements and limitations.";
- const selectedChapter=detail&&detail.chapter;
- const depthTopic=(typeof lessonDepth!=="undefined"&&lessonDepth[mi])?lessonDepth[mi][li]:null;
  const depthHtml="";
  const chapterHtml=selectedChapter?'<section class="lesson-topic-card"><div class="lesson-topic-kicker">RELATED METHOD DETAIL</div><h2>'+escHtml(selectedChapter.title)+'</h2>'+paras(selectedChapter.paragraphs)+'</section>':'';
  const methodSetup=showEquipment&&detail&&detail.equipment&&detail.equipment.length?'<section class="lesson-topic-card"><div class="lesson-topic-kicker">EQUIPMENT AND COMPONENTS</div><h2>Equipment used for this topic</h2>'+list(detail.equipment)+'</section>':'';
